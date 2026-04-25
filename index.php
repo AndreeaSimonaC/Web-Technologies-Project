@@ -6,7 +6,7 @@
     <title>CityWatch</title>
     <link rel="stylesheet" href="main.css">
     <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 </head>
@@ -20,8 +20,8 @@
             <a href="#">Home</a>
             <a href="#">Contact</a>
             <div class="auth-buttons">
-                <a href="#" class="button login-button">Login</a>
-                <a href="#" class="button signup-button">Sign Up</a>
+                <a href="login.php" class="button login-button">Login</a>
+                <a href="register.php" class="button signup-button">Sign Up</a>
             </div>
         </nav>
     </header>
@@ -45,11 +45,11 @@
             </div>
             <div class="map-footer">
                 <div class="legend">
-                    <div class="legend-item"><img src="assets/pinpaper.png"> Paper</div>
-                    <div class="legend-item"><img src="assets/pinplastic.png"> Plastic</div>
-                    <div class="legend-item"><img src="assets/pinmetal.png"> Metal</div>
-                    <div class="legend-item"><img src="assets/pinglass.png"> Glass</div>
-                    <div class="legend-item"><img src="assets/pinhousehold.png"> Household</div>
+                    <div class="legend-item"><img src="assets/pinpaper.png" alt="paper pin"> Paper</div>
+                    <div class="legend-item"><img src="assets/pinplastic.png" alt="plastic pin"> Plastic</div>
+                    <div class="legend-item"><img src="assets/pinmetal.png" alt="metal pin"> Metal</div>
+                    <div class="legend-item"><img src="assets/pinglass.png" alt="glass pin"> Glass</div>
+                    <div class="legend-item"><img src="assets/pinhousehold.png" alt="household pin"> Household</div>
                 </div>
             </div>
         </div>
@@ -60,7 +60,7 @@
         <div class="overlay"></div>
         <div class="bottom-content">
             <div class="bottom-left">
-                <a href="#" class="cta-button">Create an account</a>
+                <a href="register.php" class="cta-button">Create an account</a>
                 <p class="cta-text">Report waste: Easily report waste-issues areas by location.<br>Track issues: See reports on the map in real time.<br>Clean city: Help improve your community</p>
             </div>
             <div class="bottom-right"><img src="assets/picturelandingpage.png" alt="recycle bins"></div>
