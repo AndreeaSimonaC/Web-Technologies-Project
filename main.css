@@ -497,6 +497,16 @@ footer {
     margin-left: 10px;
     text-decoration: none;
 }
+.error-box {
+    background: #ff4d4d;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 600;
+}
+
 /* login */
 /*
 .login-page {
@@ -590,3 +600,543 @@ footer {
     text-decoration: none;
 }
 */
+
+/*userdashboard*/
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    background: rgba(192, 224, 159, 0.5);
+    color: white;
+    text-decoration: none;
+
+    padding: 10px 20px;
+    border-radius: 12px;
+
+    font-size: 20px;
+    font-weight: 500;
+
+    transition: 0.3s ease;
+}
+
+.logout-button img {
+    width: 40px;
+    height: 40px;
+
+}
+
+.logout-button:hover {
+    background: rgba(192, 224, 159, 0.8);
+}
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+/*general*/
+.dashboard-section {
+    position: relative;
+    background: url("assets/background.png") center/cover no-repeat;
+    padding: 120px 0;
+}
+.dashboard-section .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 60, 30, 0.85);
+}
+.dashboard-container {
+    position: relative;
+    z-index: 2;
+    width: min(1200px, 90%);
+    margin: auto;
+    display: flex;
+    gap: 50px;
+    align-items: stretch; 
+}
+
+/*cards common*/
+.reports-card,
+.impact-card {
+    background: #ffffff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 1000px;
+    height: auto;
+    overflow: hidden;
+    padding: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.card-header {
+    background: #2f6f3e;
+    color: white;
+    text-align: center;
+    padding: 18px;
+    font-size: 24px;
+    font-weight: 600;
+    width: 100%;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+}
+
+/*reports card*/
+.reports-card {
+    display: flex;
+    flex-direction: column;
+}
+.reports-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+.reports-list {
+    overflow-y: auto;
+    padding-right: 25px; 
+    padding-left: 25px;
+    min-height: 0;
+    padding-right: 10px;
+    max-height: 300px;
+}
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f2f2f2;
+    padding: 22px 25px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+.report-left {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+.report-icon {
+    width: 60px;
+}
+.report-title {
+    font-weight: 600;
+}
+.report-location {
+    font-size: 14px;
+    color: #616161;
+}
+.filters {
+    margin-bottom: 40px;
+}
+.filters button {
+    background: #e0e0e0;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.filters .active {
+    background: #2f6f3e;
+    color: white;
+}
+.status {
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+.status.pending {
+    background: #ffb3b3;
+}
+.status.progress {
+    background: #ffd699;
+}
+.status.resolved {
+    background: #b3ffb3;
+}
+
+/*impact card*/
+.impact-card {
+    display: flex;
+    flex-direction: column;
+}
+.impact-body {
+    padding: 25px 25px 20px 25px;
+    text-align: center;
+    flex: 1;
+}
+.impact-card h3 {
+    font-size: 60px;
+    text-align: center;
+}
+.impact-number {
+    color: #2f6f3e;
+}
+.impact-visual {
+    position: relative;
+    margin-top: 25px;
+    height: 120px;
+}
+.broom {
+    position: absolute;
+    right: 50%;
+    top: -230px;
+    width: 370px;
+    z-index: 2;
+}
+.thankyou-box {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -1px;
+    background: #eeeeee;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-size: 28px;
+    z-index: 1;
+}
+.stars-box {
+    background: #2f6f3e;
+    color: white;
+    padding: 24px;
+    text-align: center;
+    margin-top: auto;
+    border-radius: 0 0 20px 20px;
+}
+@media (max-width: 900px) {
+    .dashboard-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .reports-card,
+    .impact-card {
+        width: 100%;
+    }
+}
+@media (max-width: 1000px) {
+    .dashboard-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .reports-card,
+    .impact-card {
+        width: 90%;
+        max-width: none;
+    }
+}
+@media (max-width: 600px) {
+    .dashboard-section {
+        padding: 60px 0;
+    }
+    .card-header {
+        font-size: 20px;
+        padding: 14px;
+    }
+    .reports-body {
+        padding: 15px;
+    }
+    .report-item {
+        padding: 15px;
+        gap: 10px;
+    }
+    .report-icon {
+        width: 40px;
+    }
+    .report-title {
+        font-size: 14px;
+    }
+    .report-location {
+        font-size: 12px;
+    }
+    .status {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .filters button {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+    .impact-card h3 {
+        font-size: 36px;
+    }
+    .impact-body p {
+        font-size: 14px;
+    }
+    .thankyou-box {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+    .stars-box {
+        font-size: 14px;
+        padding: 14px;
+    }
+    .broom {
+        position: static;
+        width: 150px;
+        margin: 10px auto;
+        display: block;
+    }
+    .impact-visual {
+        height: auto;
+    }
+}
+
+/*user report form (reportformuser.php)*/
+.report-section {
+    position: relative;
+    min-height: 100vh;
+    background: url("assets/background.png") center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.report-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 60, 30, 0.75);
+}
+
+.report-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+}
+.report-card {
+    position: relative;
+    z-index: 2;
+    width: 1000px;
+    height: 500px;
+    display: flex;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.3);
+        box-shadow:
+        0 0 0 25px rgba(0, 0, 0, 0.35),
+        0 20px 25px rgba(0,0,0,0.6);
+}
+.report-form {
+    width: 40%;
+    background: #b7c7a1;
+    padding: 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.report-form h2 {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.report-form p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+.report-form label {
+    margin-top: 15px;
+    font-weight: 600;
+}
+.report-form select,
+.report-form textarea,
+.report-form input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 3px solid #0b3d1f;
+    background: #eeeeee;
+    font-size: 16px;
+    font-family: 'Playfair', sans-serif;
+}
+.report-form textarea {
+    resize: none;
+    height: 90px;
+
+}
+#locationInput {
+    background: #eeeeee;
+}
+
+.report-map {
+    width: 60%;
+    position: relative;
+    background: white;
+}
+
+#map {
+    width: 100%;
+    height: 500px;
+}
+.map-overlay {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(183,199,161,0.7);
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 2px solid #0b3d1f;
+    z-index: 1000;
+}
+.locate-button {
+    position: absolute;
+    bottom: 65px;
+    right: 15px;
+    z-index: 1000;
+
+    background: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.report-form button {
+    margin-top: 20px;
+    padding: 6px 90px;
+    width: 100%;
+    background: #0b3d1f;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.report-form button:hover {
+    background: #145c2c;
+}
+.report-map {
+    position: relative;
+}
+
+.report-map-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #e5e5e5;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.report-legend {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.report-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.report-legend img {
+    width: 18px;
+}
+.success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.success-box {
+    background: #eeeeee;
+    padding: 40px 60px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 600px;
+    border: 6px solid #0b3d1f;
+    position: relative;
+}
+
+.success-box h2 {
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.success-box p {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.redirect-text {
+    font-style: italic;
+    font-weight: 600;
+}
+
+.close-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #ff4d4d;
+    color: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+}
+.report-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.report-overlay-box {
+    background: #eeeeee;
+    padding: 40px 60px;
+    border-radius: 16px;
+    border: 5px solid #0b3d1f;
+    max-width: 850px;
+    width: 90%;
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.report-overlay-box p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+
+    font-size: 22px;
+}
+
+.report-overlay-box strong {
+    width: 200px;
+    text-align: right;
+    font-weight: 700;
+    color: #0b3d1f;
+}
+
+.report-overlay-box span {
+    width: 250px;
+    text-align: left;
+    font-style: italic;
+    color: #1f2d3d;
+}
+#ovStatus {
+    font-weight: 700;
+}
