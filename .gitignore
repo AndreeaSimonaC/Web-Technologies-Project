@@ -1,0 +1,7 @@
+# XAMPP/MySQL files
+xampp/mysql/data/
+mysql/data/
+*.pid
+*.err
+*.log
+*.ibd
