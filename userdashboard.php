@@ -50,14 +50,23 @@ $stars = $totalResolved * 10;
 </head>
 
 <body>
-    <header class="navbar">
+   <header class="navbar">
         <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
-        <nav class="nav-links">
+        
+        <button class="hamburger" id="hamburger-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="nav-links" id="nav-links">
             <a href="userdashboard.php">Home</a>
             <a href="#map-section">Map</a>
             <a href="#reports-section">My Reports</a>
         </nav>
-        <div class="nav-right"><a href="logout.php" class="button logout-button"><img src="assets/logouticon.png" alt="logout icon">Logout</a></div>
+        <div class="nav-right">
+            <a href="logout.php" class="button logout-button"><img src="assets/logouticon.png" alt="logout icon">Logout</a>
+        </div>
     </header>
 
     <section class="topsection">

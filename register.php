@@ -39,7 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,6 +48,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body class="register-page">
+    <a href="index.php" class="back-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Home</span>
+    </a>
     <div class="register-left">
         <img src="assets/logobig.png" class="register-logo" alt="logo">
         <h1>Help us make<br>the city clean.</h1>
@@ -56,7 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="register-right">
         <h2>Welcome!</h2>
         <p>Sign up to access your account and start reporting waste-issues.</p>
+        
         <?php if (!empty($error)): ?> <div class="error-box"> <?= $error ?> </div> <?php endif; ?>
+        
         <form class="register-form" method="POST" action="register.php">
             <label>Username</label>
             <div class="input-group">

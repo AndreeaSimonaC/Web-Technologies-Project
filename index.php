@@ -8,6 +8,7 @@
     <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </head>
 
 <!--Landing page is divided into 5 sections: header, topsection, midsection, bottomsection and footer-->
@@ -15,7 +16,14 @@
     <!--Header section: logo and nav bar-->
     <header class="navbar">
         <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
-        <nav class="nav-links">
+        
+        <button class="hamburger" id="hamburger-menu">
+        	<span class="bar"></span>
+        	<span class="bar"></span>
+        	<span class="bar"></span>
+        </button>
+        
+        <nav class="nav-links" id="nav-links">
             <a href="#">Home</a>
             <a href="#">Contact</a>
             <div class="auth-buttons">
@@ -53,16 +61,7 @@
             </div>
         </div>
     </section>
-    <div class="report-overlay" id="reportOverlay" style="display:none;">
-        <div class="report-overlay-box">
-            <div class="close-btn" onclick="closeOverlay()">✕</div>
-            <p><strong>Waste category:</strong> <span id="ovCategory"></span></p>
-            <p><strong>Location:</strong> <span id="ovLocation"></span></p>
-            <p><strong>Submitted by:</strong> <span id="ovUser"></span></p>
-            <p><strong>Date:</strong> <span id="ovDate"></span></p>
-            <p><strong>Status:</strong> <span id="ovStatus"></span></p>
-        </div>
-    </div>
+
     <!--bottomsection: cta button, text, title, image-->
     <section class="bottomsection">
         <div class="overlay"></div>
@@ -88,6 +87,44 @@
         <p>Contact us at citywatch@cleaning.com</p>
     </footer>
 
-    <script src="map.js"></script>
+    <!--script for map and location-->
+    <!-- TO BE UPDATED WITH CURRENT REPORTS once we implement them later on-->
+
+    <script>
+        //map var store the Leaflet map object
+        //L is the Leaflet library
+        //creating the map with the map function, with the html element id 'map'
+        //setview with latitude, longitude coords and zoom level
+        var map = L.map('map', {attributionControl: false}).setView([47.1585, 27.6014], 13);
+        //load the map with the template zoom/lat/long
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
+        //attribution, needed for copywrite
+        L.control.attribution({ position: 'bottomright' }).addAttribution('© OpenStreetMap').addTo(map);
+
+        //locate me button on click uses geolocation API for location
+        document.getElementById("locateButton").addEventListener("click", function () {
+            if (!navigator.geolocation) { alert("Geolocation is not available."); return; }
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    map.setView([lat, lng], 15);
+                    //marker the pin that shows the location
+                    L.marker([lat, lng]).addTo(map).bindPopup("You are here.").openPopup();},
+                function () {alert("Unable to retrieve your location.");}
+            );
+        });
+    </script>
+    <script>
+    	document.addEventListener("DOMContentLoaded", function(){
+    		const hamburger = document.getElementById("hamburger-menu");
+    		const navLinks = document.getElementById("nav-links");
+    		
+    		hamburger.addEventListener("click",function(){
+    			navLinks.classList.toggle("active");
+            document.body.classList.toggle("no-scroll");
+    			});
+    		});
+    	</script>
 </body>
 </html>

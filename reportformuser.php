@@ -40,8 +40,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <header class="navbar">
         <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
-        <nav class="nav-links">
-            <a href="#">Home</a>
+        
+        <button class="hamburger" id="hamburger-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="nav-links" id="nav-links">
+            <a href="userdashboard.php">Home</a>
             <a href="#map-section">Map</a>
             <a href="#reports-section">My Reports</a>
         </nav>

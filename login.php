@@ -44,22 +44,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch Login</title>
-    <link rel="stylesheet" href="login.css">
-    <!--    
     <link rel="stylesheet" href="main.css">
-    -->
     <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
 </head>
 
 <body class="login-page">
+    <a href="index.php" class="back-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Home</span>
+    </a>
     <div class="login-left">
         <img src="assets/logobig.png" class="login-logo" alt="logo">
         <h1>Help us make<br>the city clean.</h1>
@@ -67,7 +69,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="login-right">
         <h2>Welcome back!</h2>
         <p>Login to access your account and start reporting waste-issues.</p>
+        
         <?php if (!empty($error)): ?> <div class="error-box"> <?= $error ?>  </div> <?php endif; ?>
+        
         <form class="login-form" method="POST" action="login.php">
             <label>Username</label>
             <div class="input-group">

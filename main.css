@@ -19,6 +19,9 @@
 body {
     font-family: 'Playfair', sans-serif;
 }
+body.no-scroll{
+    overflow:hidden;
+}
 h1, h2, .bottom-title {
     font-family: 'Poppins', serif;
 }
@@ -30,7 +33,7 @@ h1, h2, .bottom-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 10;
+    z-index: 9999;
 }
 .logo img {
   width: 100px;
@@ -236,6 +239,25 @@ footer {
     background: #ffffff;
     color: rgb(0, 0, 0);
 }
+/*hamburger*/
+.hamburger{
+  display: none; /*ca sa fie ascuns*/
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  flex-direction:column;
+  gap:6px;
+  position: relative;
+  z-index:9999;/*asta e pentru a sta deasupra*/
+  }
+.hamburger .bar{
+  width:35px;
+  height:4px;
+  background-color: white;
+  border-radius:5px;
+  transition: all 0.3s ease;
+}
+
 
 /*responsivness*/
 @media (max-width: 1200px) {
@@ -274,16 +296,67 @@ footer {
 
 @media (max-width: 900px) {
     .navbar {
-        padding: 30px;
-        flex-direction: column;
-        gap: 20px;
+      padding:20px 30px;
+      flex-direction:row;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hamburger{
+      display:flex;
     }
     .nav-links {
-        flex-direction: column;
-        gap: 15px;
+        display:flex;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:liniear-gradient(135deg, rgba(11,61,31,0.8) 0%, rgba(11,61,31,0.4) 100%);
+        backdrop-filter:blur(20px);
+        -webkit-backdrop-filter:blur(20px);
+        flex-direction:column;
+        justify-content: center;
+        align-items: center;
+       gap: 40px;               
+        
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-20px);
+        transition: all 0.4s ease-in-out; 
+        
+        z-index: 9998; 
     }
+
+    .nav-links.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .nav-links a{
+      font-size: 26px;
+      font-weight:600;
+      color:#ffffff;
+      letter-spacing:1px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    
     .auth-buttons {
-        gap: 15px;
+        flex-direction:column;
+        gap:20px;
+        width:100%;
+        align-items:center;
+        margin-top:15px;
+    }
+    .auth-buttons .button{
+    width: 80%;
+    max-width:250px;
+    text-align:center;
+    border:none;
+    background: rgba(255, 255, 255, 0.9);
+    color:#0b3d1f;
+    font-weight: 600;
+    box-shadow: 0 4px 15 px rgba(0,0,0,0.3);
     }
     .topsection {
         height: 600px;
@@ -413,7 +486,36 @@ footer {
     display: flex;
     height: 100vh;
 }
+/* Buton Back to Home */
+.back-home {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6); 
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    z-index: 100; 
+}
 
+.back-home svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease; 
+}
+
+.back-home:hover {
+    color: rgba(255, 255, 255, 1); 
+}
+
+.back-home:hover svg {
+    transform: translateX(-5px); 
+}
 .register-left {
     width: 50%;
     background: #0b3d1f;
@@ -497,22 +599,42 @@ footer {
     margin-left: 10px;
     text-decoration: none;
 }
-.error-box {
-    background: #ff4d4d;
-    color: white;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    text-align: center;
-    font-weight: 600;
-}
-
 /* login */
-/*
+
 .login-page {
     display: flex;
     height: 100vh;
     font-family: 'Playfair', serif;
+}
+/* Buton Back to Home */
+.back-home {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6); 
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    z-index: 100; 
+}
+
+.back-home svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease; 
+}
+
+.back-home:hover {
+    color: rgba(255, 255, 255, 1); 
+}
+
+.back-home:hover svg {
+    transform: translateX(-5px); 
 }
 .login-left {
     width: 50%;
@@ -599,7 +721,60 @@ footer {
     margin-left: 10px;
     text-decoration: none;
 }
-*/
+/*responsivness login & register*/
+@media (max-width:900px){
+    .login-page, .register-page{
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        background: linear-gradient(to bottom, #0b3d1f 0%, #0b3d1f 30%, #b7c7a1 70%, #b7c7a1 100%);
+    }
+    .login-left, .register-left, 
+    .login-right, .register-right {
+        width: 100%;
+        background: transparent !important;
+    }
+    .login-left, .register-left {
+        padding: 50px 20px 10px 20px;
+    }
+    .login-logo, .register-logo {
+        width: 200px; 
+        margin-bottom: 20px;
+    }
+    .login-left h1, .register-left h1 {
+        font-size: 38px;
+        color: white;
+    }
+    .login-right, .register-right {
+        padding: 20px 30px 60px 30px;
+    }
+    .login-right h2, .register-right h2 {
+        font-size: 32px;
+        color: #0b3d1f;
+    }
+    .login-right p, .register-right p,
+    .login-form label, .register-form label {
+        color: #0b3d1f;
+        font-size: 18px;
+    }
+    .input-group {
+        padding: 8px 12px;
+    }
+    .login-button-submit, .register-button {
+        font-size: 20px;
+        padding: 12px;
+    }
+    .back-home {
+        top: 20px;
+        left: 20px;
+        font-size: 16px;
+    }
+    
+    .back-home svg {
+        width: 18px;
+        height: 18px;
+    }
+}
 
 /*userdashboard*/
 
