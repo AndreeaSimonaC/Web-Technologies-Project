@@ -1,3 +1,8 @@
+<?php
+$conn = new mysqli("localhost", "root", "", "citywatch");
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+$mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM reports r JOIN categories c ON r.category_id = c.id JOIN users u ON r.user_id = u.id WHERE r.status != 'archived'");
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,7 +66,16 @@
             </div>
         </div>
     </section>
-
+    <div class="report-overlay" id="reportOverlay" style="display:none;">
+        <div class="report-overlay-box">
+            <div class="close-btn" onclick="closeOverlay()">✕</div>
+            <p><strong>Waste category:</strong> <span id="ovCategory"></span></p>
+            <p><strong>Location:</strong> <span id="ovLocation"></span></p>
+            <p><strong>Submitted by:</strong> <span id="ovUser"></span></p>
+            <p><strong>Date:</strong> <span id="ovDate"></span></p>
+            <p><strong>Status:</strong> <span id="ovStatus"></span></p>
+        </div>
+    </div>
     <!--bottomsection: cta button, text, title, image-->
     <section class="bottomsection">
         <div class="overlay"></div>
@@ -100,7 +114,41 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
         //attribution, needed for copywrite
         L.control.attribution({ position: 'bottomright' }).addAttribution('© OpenStreetMap').addTo(map);
-
+        <?php while ($row = $mapQuery->fetch_assoc()): ?>
+            <?php if ($row['latitude'] && $row['longitude']): ?>
+                <?php
+                $icon = "";
+                switch ($row['category_id']) {
+                    case 1:
+                        $icon = "assets/pinplastic.png";
+                        break;
+                    case 2:
+                        $icon = "assets/pinpaper.png";
+                        break;
+                    case 3:
+                        $icon = "assets/pinglass.png";
+                        break;
+                    case 4:
+                        $icon = "assets/pinmetal.png";
+                        break;
+                    case 5:
+                        $icon = "assets/pinhousehold.png";
+                        break;
+                }
+                ?>
+                var icon = L.icon({ iconUrl: "<?= $icon ?>", iconSize: [35, 35] });
+                var marker = L.marker([<?= $row['latitude'] ?>, <?= $row['longitude'] ?>], { icon: icon }).addTo(map);
+                marker.on("click", function() {
+                    document.getElementById("reportOverlay").style.display = "flex";
+                    document.getElementById("ovCategory").textContent = "<?= htmlspecialchars($row['category_name']) ?>";
+                    document.getElementById("ovLocation").textContent = "<?= htmlspecialchars($row['location']) ?>";
+                    document.getElementById("ovUser").textContent = "<?= htmlspecialchars($row['username']) ?>";
+                    document.getElementById("ovDate").textContent = "<?= $row['created_at'] ?>";
+                    document.getElementById("ovStatus").textContent = "<?= $row['status'] ?>";
+                });
+            <?php endif; ?>
+        <?php endwhile; ?>
+        function closeOverlay() { document.getElementById("reportOverlay").style.display = "none"; }
         //locate me button on click uses geolocation API for location
         document.getElementById("locateButton").addEventListener("click", function () {
             if (!navigator.geolocation) { alert("Geolocation is not available."); return; }
@@ -125,6 +173,6 @@
             document.body.classList.toggle("no-scroll");
     			});
     		});
-    	</script>
+    </script>
 </body>
 </html>
