@@ -902,7 +902,7 @@ footer {
     margin-bottom: 40px;
 }
 .filters button {
-    background: #e0e0e0;
+    background: #c7c6c6;
     border: none;
     padding: 6px 12px;
     border-radius: 10px;
@@ -1314,4 +1314,324 @@ footer {
 }
 #ovStatus {
     font-weight: 700;
+}
+
+
+/*worker dashboard*/
+.worker-page {
+    background-color: #0b3d1f;
+}
+.dashboard-section {
+    min-height: 100vh;
+    padding-top: 150px;
+    padding-bottom: 50px;
+}
+.worker-content-section {
+    width: 100%;
+    margin-bottom: 120px;
+    z-index: 2;
+    scroll-margin-top: 120px;
+}
+.worker-card {
+    background: rgba(255, 255, 255, 0.873);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    margin-bottom: 30px;
+    border-left: 8px solid #0b3d1f;
+
+}
+.worker-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+.mission-item {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 8px solid #0b3d1f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s;
+}
+.mission-item:hover {
+    transform: translateY(-5px);
+}
+.mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.badge-status {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-pending {
+    background: #ff4d4d;
+    color: white;
+}
+.status-progress {
+    background: #f39c12;
+    color: white;
+}
+.mission-info h3 {
+    color: #0b3d1f;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+.mission-info p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+}
+.mission-archived {
+    opacity: 0.6;
+    background: #f0f0f0;
+    border-left: 8px solid #999;
+}
+.action-archive {
+    background: #6c757d;
+}
+.archived-pin {
+    filter: grayscale(100%);
+    opacity: 0.8;
+}
+.action-button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: #0b3d1f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.action-button:hover {
+    background: #1e7e34;
+}
+
+.worker-title {
+    color: white;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    font-family: 'Playfair', serif;
+}
+.worker-section-title {
+    color: rgb(0, 0, 0);
+    font-family: 'Playfair', serif;
+    text-align: left;
+    margin-bottom: 10px;
+}
+.worker-subtitle {
+    color: #b7c7a1;
+    font-size: 30px;
+    text-align: center;
+    margin-bottom: 70px;
+}
+
+.worker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-top: 20px;
+}
+@media (max-width: 768px) {
+    .worker-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+}
+.worker-card-warning {
+    background: #fff4e5;
+    border-left: 5px solid #f39c12;
+}
+
+.worker-card-success {
+    background: #e6f4ea;
+    border-left: 5px solid #28a745;
+}
+.worker-card-pending {
+    background: #ffe5e5;
+    border-left: 5px solid #ff4d4d;
+}
+.header-icon {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    border-radius: 5px;
+}
+.worker-header-warning {
+    background: #f39c12;
+}
+.worker-header-success {
+    background: #28a745;
+}
+.worker-header-pending {
+    background: #ff4d4d;
+}
+.worker-text-warning {
+    color: #f39c12;
+}
+.worker-text-pending {
+    color: #ff4d4d;
+}
+.worker-text-success {
+    color: #28a745;
+}
+.worker-stat-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 42px;
+    margin-top: 10px;
+}
+.worker-stat-icon {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    border-radius: 5px;
+}
+.impact-number {
+    font-size: 45px;
+    font-weight: bold;
+    margin: 2px 10px 20px 10px;
+}
+.worker-filters {
+    margin-bottom: 25px;
+    
+}
+.worker-filters .filters,
+.worker-filters .category-filters {
+    margin-bottom: 15px;
+    
+}
+.category-filters button {
+    background: #c7c6c6;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.category-filters .active {
+    background: #2f6f3e;
+    color: white;
+}
+.mission-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.mission-left {
+    flex: 1;
+}
+.mission-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+}
+.mission-icon {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+
+}
+.worker-map-card {
+    padding: 0;
+    overflow: hidden;
+    margin-top: 70px;
+}
+.worker-map-card .map-container {
+    height: 500px;
+    position: relative;
+}
+.worker-map-card #map {
+    height: 100%;
+    width: 100%;
+}
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.confirm-box {
+    background: #eeeeee;
+    padding: 35px 50px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 500px;
+    border: 6px solid #0b3d1f;
+    position: relative;
+}
+.confirm-box h3 {
+    font-size: 22px;
+    margin-bottom: 25px;
+}
+
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+#cancelBtn {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+#confirmBtn {
+    background: #2f6f3e;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+#cancelBtn:hover {
+    background: #cc0000;
+}
+#confirmBtn:hover {
+    background: #166027;
+}
+.confirm-box {
+    animation: popup 0.3s ease;
+}
+@keyframes popup {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

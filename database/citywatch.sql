@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2026 at 08:22 AM
+-- Generation Time: May 13, 2026 at 02:34 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,21 +55,23 @@ CREATE TABLE `reports` (
   `category_id` int(11) NOT NULL,
   `location` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `status` enum('pending','progress','resolved') DEFAULT 'pending',
+  `status` enum('pending','progress','resolved','archived') DEFAULT 'pending',
   `created_at` datetime DEFAULT current_timestamp(),
   `latitude` double DEFAULT NULL,
-  `longitude` double DEFAULT NULL
+  `longitude` double DEFAULT NULL,
+  `worker_id` int(11) DEFAULT NULL,
+  `resolved_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `reports`
 --
 
-INSERT INTO `reports` (`id`, `user_id`, `category_id`, `location`, `description`, `status`, `created_at`, `latitude`, `longitude`) VALUES
-(3, 2, 4, 'Stradela Elena Doamna, Centru, Iași, Iași Metropolitan Area, Iași, 700398, Romania', 'hello', 'pending', '2026-04-29 11:15:24', 47.16157136183071, 27.597026821458716),
-(4, 2, 5, 'Banca Națională a României – Sucursala Iași, 17, Bulevardul Ștefan cel Mare și Sfânt, Centru, Iași, Iași Metropolitan Area, Iași, 700067, Romania', 'TESTTT', 'pending', '2026-04-29 11:31:10', 47.1605695210656, 27.584609985351566),
-(5, 3, 4, 'DN28, Iași, Iași Metropolitan Area, Iași, 700410, Romania', 'Oh no gunoi', 'pending', '2026-04-29 13:14:37', 47.16862262391973, 27.51310157511827),
-(6, 3, 4, 'DN28, Iași, Iași Metropolitan Area, Iași, 700410, Romania', 'Oh no gunoi', 'pending', '2026-04-29 13:16:42', 47.16862262391973, 27.51310157511827);
+INSERT INTO `reports` (`id`, `user_id`, `category_id`, `location`, `description`, `status`, `created_at`, `latitude`, `longitude`, `worker_id`, `resolved_at`) VALUES
+(3, 2, 4, 'Stradela Elena Doamna, Centru, Iași, Iași Metropolitan Area, Iași, 700398, Romania', 'hello', 'pending', '2026-04-29 11:15:24', 47.16157136183071, 27.597026821458716, NULL, NULL),
+(4, 2, 5, 'Banca Națională a României – Sucursala Iași, 17, Bulevardul Ștefan cel Mare și Sfânt, Centru, Iași, Iași Metropolitan Area, Iași, 700067, Romania', 'TESTTT', 'progress', '2026-04-29 11:31:10', 47.1605695210656, 27.584609985351566, 6, NULL),
+(5, 3, 4, 'DN28, Iași, Iași Metropolitan Area, Iași, 700410, Romania', 'Oh no gunoi', 'resolved', '2026-04-29 13:14:37', 47.16862262391973, 27.51310157511827, 6, '2026-05-13 14:56:25'),
+(6, 3, 4, 'DN28, Iași, Iași Metropolitan Area, Iași, 700410, Romania', 'Oh no gunoi', 'archived', '2026-04-29 13:16:42', 47.16862262391973, 27.51310157511827, 6, NULL);
 
 -- --------------------------------------------------------
 
@@ -93,7 +95,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `created_at`) VALUES
 (1, 'test1', 'test1@t.com', '$2y$10$Ylnu2HsOlD1h7eHHKebXeOrhnC.nY2V12OtDbdkeLvzOUYLRIRHNm', 'user', '2026-04-26 10:56:31'),
 (2, 'test2', 'test2@t.com', '$2y$10$ZCO.f7cdAqLWYnBDCJzdruAlLxKxgAWzkYd/6DYHM2izFAAP/ZjeO', 'user', '2026-04-28 12:40:34'),
-(3, 'test', 'test@t.com', '$2y$10$vkD2ihmyAJA.f3.GI4AId.YDIXUov8qY/3hARrQMqpI1oimKxZay2', 'user', '2026-04-29 09:49:54');
+(3, 'test', 'test@t.com', '$2y$10$vkD2ihmyAJA.f3.GI4AId.YDIXUov8qY/3hARrQMqpI1oimKxZay2', 'user', '2026-04-29 09:49:54'),
+(6, 'Operator1', 'worker1@worker.com', '$2y$10$GtuWm/MoCkqkbJmmhA8PbeOpujLlXBGM4pufMAUr9BRPBgnK/utSe', 'worker', '2026-05-13 11:20:23');
 
 --
 -- Indexes for dumped tables
@@ -140,7 +143,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables

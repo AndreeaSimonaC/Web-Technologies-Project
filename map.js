@@ -25,9 +25,9 @@ fetch("get_reports.php").then(response => response.json()).then(data => {
             case 5: iconUrl = "assets/pinhousehold.png"; break;
         }
 
-        let customIcon = L.icon({ iconUrl: iconUrl, iconSize: [30, 40], iconAnchor: [15, 40] });
-
-        L.marker([report.latitude, report.longitude], { icon: customIcon }).addTo(map).on("click", function () {
+        let customIcon = L.icon({ iconUrl: iconUrl, iconSize: [30, 40], iconAnchor: [15, 40], className: report.status === "archived" ? "archived-pin" : "" });
+        let markerOpacity = report.status === "archived" ? 0.8 : 1;
+        L.marker([report.latitude, report.longitude], { icon: customIcon, opacity: markerOpacity}).addTo(map).on("click", function () {
             document.getElementById("ovCategory").textContent = report.category_name;
             document.getElementById("ovLocation").textContent = report.location;
             document.getElementById("ovUser").textContent = report.username;

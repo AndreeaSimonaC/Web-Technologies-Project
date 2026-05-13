@@ -1,9 +1,32 @@
 <?php
-/* === MOD FRONTEND: Mockup pentru Previzualizare Design === */
-$username = "Operator CityWatch #14";
-$pendingTasks = 3;
-$myInProgress = 1;
-$totalResolved = 12;
+    session_start();
+    $conn = new mysqli("localhost", "root", "", "citywatch");
+    if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+    if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
+    if ($_SESSION["role"] !== "worker") { header("Location: userdashboard.php"); exit(); }
+
+    $worker_id = $_SESSION['user_id'];
+    $username = $_SESSION['username'];
+
+    $pendingQuery = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status='pending'");
+    $pendingTasks = $pendingQuery->fetch_assoc()['total'];
+
+    $progressStmt = $conn->prepare("SELECT COUNT(*) as total FROM reports  WHERE status='progress' AND worker_id=?");
+    $progressStmt->bind_param("i", $worker_id);
+    $progressStmt->execute();
+    $myInProgress = $progressStmt->get_result()->fetch_assoc()['total'];
+    $progressStmt->close();
+
+    $resolvedStmt = $conn->prepare("SELECT COUNT(*) as total  FROM reports  WHERE status IN ('resolved', 'archived')  AND worker_id=?");
+    $resolvedStmt->bind_param("i", $worker_id);
+    $resolvedStmt->execute();
+    $totalResolved = $resolvedStmt->get_result()->fetch_assoc()['total'];
+    $resolvedStmt->close();
+
+    $reportsStmt = $conn->prepare("SELECT r.*, c.name AS category_name, u.username FROM reports r JOIN categories c ON r.category_id = c.id JOIN users u ON r.user_id = u.id
+            ORDER BY CASE WHEN r.status = 'archived' THEN 1  ELSE 0 END, r.created_at DESC");
+    $reportsStmt->execute();
+    $reports = $reportsStmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -14,123 +37,19 @@ $totalResolved = 12;
     <title>Worker Command Center - CityWatch</title>
     <link rel="stylesheet" href="main.css">
     <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
-    <style>
-        /* --- CSS pentru SPA & Efectul de Fade (Identic cu Admin) --- */
-        body {
-            background-color: #0b3d1f; 
-        }
-        
-        .dashboard-section {
-            min-height: 100vh;
-            padding-top: 150px;
-            padding-bottom: 50px;
-        }
-
-        .worker-content-section {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-            width: 100%;
-            z-index: 2;
-        }
-
-        .worker-content-section.active {
-            display: block;
-            opacity: 1;
-        }
-
-        /* --- Stil Carduri Lucrător (Glassmorphism Pro) --- */
-        .worker-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            margin-bottom: 30px;
-            min-height: 500px;
-        }
-
-        .worker-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        /* Card de misiune individuală */
-        .mission-item {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 8px solid #0b3d1f;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s;
-        }
-
-        .mission-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .mission-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .badge-status {
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .status-pending { background: #ff4d4d; color: white; }
-        .status-progress { background: #f39c12; color: white; }
-
-        .mission-info h3 {
-            color: #0b3d1f;
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-
-        .mission-info p {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.5;
-        }
-
-        .action-button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            background: #0b3d1f;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .action-button:hover {
-            background: #1e7e34;
-        }
-    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
-<body>
+<body class="worker-page">
     <header class="navbar">
         <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <nav class="nav-links" id="nav-links">
-            <a href="#" class="nav-tab active" data-target="overview">Overview</a>
-            <a href="#" class="nav-tab" data-target="tasks">Active Missions</a>
-            <a href="#" class="nav-tab" data-target="map">Area Map</a>
+            <a href="#overview" class="nav-tab active" data-target="overview">Overview</a>
+            <a href="#tasks" class="nav-tab" data-target="tasks">Active Missions</a>
+            <a href="#map-section" class="nav-tab" data-target="map">Area Map</a>
             <a href="logout.php" class="button logout-button">Logout</a>
         </nav>
     </header>
@@ -140,61 +59,168 @@ $totalResolved = 12;
         <div class="dashboard-container" style="flex-direction: column;">
 
             <div id="overview" class="worker-content-section active">
-                <h1 style="color:white; text-align:center; margin-bottom:10px;">Operator Command Center</h1>
-                <p style="color:#b7c7a1; text-align:center; margin-bottom:40px;">Ready for cleanup, <?= $username ?>?</p>
-                
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:25px;">
-                    <div class="impact-card"><div class="card-header">New Assignments</div><h3 class="impact-number"><?= $pendingTasks ?></h3></div>
-                    <div class="impact-card" style="background:#fff4e5;"><div class="card-header" style="background:#f39c12;">In Progress</div><h3 class="impact-number" style="color:#f39c12;"><?= $myInProgress ?></h3></div>
-                    <div class="impact-card" style="background:#e6f4ea;"><div class="card-header" style="background:#28a745;">My Resolved</div><h3 class="impact-number" style="color:#28a745;"><?= $totalResolved ?></h3></div>
+                <h1 class="worker-title">Operator Command Center</h1>
+                <p class="worker-subtitle">Ready for cleanup, <?= $username ?>?</p>
+
+                <div class="worker-stats-grid">
+                    <div class="impact-card worker-card-pending">
+                        <div class="card-header worker-header-pending">
+                            <img src="assets/apPending.png" class="header-icon">
+                            <span>Pending Assignments</span>
+                        </div>
+                        <div class="worker-stat-line"><h3 class="impact-number worker-text-pending"><?= $pendingTasks ?></h3></div>
+                    </div>
+
+                    <div class="impact-card worker-card-warning">
+                        <div class="card-header worker-header-warning">
+                            <img src="assets/apInProgress.png" class="header-icon">
+                            <span>In Progress</span>
+                        </div>
+                        <div class="worker-stat-line"><h3 class="impact-number worker-text-warning"><?= $myInProgress ?></h3></div>
+                    </div>
+
+                    <div class="impact-card worker-card-success">
+                        <div class="card-header worker-header-success">
+                            <img src="assets/apResolved.png" class="header-icon">
+                            <span>Resolved</span>
+                        </div>
+                        <div class="worker-stat-line"><h3 class="impact-number worker-text-success"><?= $totalResolved ?></h3></div>
+                    </div>
                 </div>
             </div>
 
             <div id="tasks" class="worker-content-section">
                 <div class="worker-card">
-                    <h2 style="color:#0b3d1f; margin-bottom:20px; border-bottom: 2px solid #b7c7a1; padding-bottom:10px;">Intervention Tasks</h2>
+                    <h2 class="worker-section-title">Intervention Tasks</h2>
+                    <div class="worker-filters">
+                        <div class="filters">
+                            <p>Filter:</p>
+                            <button class="active" data-status="all">All</button>
+                            <button data-status="pending">Pending</button>
+                            <button data-status="progress">In progress</button>
+                            <button data-status="resolved">Resolved</button>
+                            <button data-status="archived">Archived</button>
+                        </div>
+
+                        <div class="category-filters">
+                            <p>Categories:</p>
+                            <button class="active" data-category="all">All</button>
+                            <button data-category="plastic">Plastic</button>
+                            <button data-category="glass">Glass</button>
+                            <button data-category="paper">Paper</button>
+                            <button data-category="metal">Metal</button>
+                            <button data-category="household">Household</button>
+                        </div>
+
+                    </div>
                     <div class="worker-grid">
-                        <div class="mission-item">
-                            <div class="mission-header">
-                                <span class="badge-status status-pending">Pending</span>
-                                <small>Today, 08:30</small>
-                            </div>
-                            <div class="mission-info">
-                                <h3>Plastic Waste</h3>
-                                <p><strong>Location:</strong> Str. Palat nr. 1, Iasi</p>
-                                <p><strong>Info:</strong> Large accumulation near recycling bins.</p>
-                            </div>
-                            <button class="action-button">Accept Mission</button>
-                        </div>
+                        <?php while ($row = $reports->fetch_assoc()): ?>
+                            <?php
+                            $icon = "";
+                            switch ($row['category_id']) {
+                                case 1:
+                                    $icon = "assets/iconplastic.png";
+                                    break;
+                                case 2:
+                                    $icon = "assets/iconpaper.png";
+                                    break;
+                                case 3:
+                                    $icon = "assets/iconglass.png";
+                                    break;
+                                case 4:
+                                    $icon = "assets/iconmetal.png";
+                                    break;
+                                case 5:
+                                    $icon = "assets/iconhousehold.png";
+                                    break;
+                            }
 
-                        <div class="mission-item" style="border-left-color: #f39c12;">
-                            <div class="mission-header">
-                                <span class="badge-status status-progress">In Progress</span>
-                                <small>Yesterday</small>
+                            $statusClass = "";
+                            if ($row['status'] == "pending") $statusClass = "status-pending";
+                            elseif ($row['status'] == "progress") $statusClass = "status-progress";
+
+                            $categoryName = strtolower($row['category_name']);
+                            ?>
+
+                            <div class="mission-item 
+                                <?= $row['status'] == 'progress' ? 'mission-progress' : '' ?>
+                                <?= $row['status'] == 'archived' ? 'mission-archived' : '' ?>"
+                                data-status="<?= $row['status'] ?>"
+                                data-category="<?= $categoryName ?>">
+
+                                <div class="mission-top">
+                                    <div class="mission-left">
+                                        <div class="mission-header">
+                                            <span class="badge-status <?= $statusClass ?>"> <?= ucfirst($row['status']) ?> </span>
+                                            <small> <?= date("M d, H:i", strtotime($row['created_at'])) ?> </small>
+                                        </div>
+                                        <div class="mission-info">
+                                            <h3><?= htmlspecialchars($row['category_name']) ?> Waste</h3>
+                                            <p><strong>Location:</strong> <?= htmlspecialchars($row['location']) ?> </p>
+                                            <p><strong>Info:</strong> <?= htmlspecialchars($row['description']) ?> </p>
+                                        </div>
+                                    </div>
+                                    <div class="mission-right"> <img src="<?= $icon ?>" class="mission-icon"> </div>
+                                </div>
+
+                                <?php if ($row['status'] == 'pending'): ?>
+                                    <button class="action-button" data-id="<?= $row['id'] ?>" data-action="accept"> Accept Mission </button>
+                                <?php elseif ($row['status'] == 'progress'): ?>
+                                    <button class="action-button action-success" data-id="<?= $row['id'] ?>" data-action="resolve"> Mark as Resolved </button>
+                                <?php elseif ($row['status'] == 'resolved'): ?>
+                                    <button class="action-button" data-id="<?= $row['id'] ?>" data-action="archive"> Archive Report </button>
+                                <?php elseif ($row['status'] == 'archived'): ?> <button class="action-button" disabled style="opacity:0.5; cursor:not-allowed;"> Archived </button>
+                                <?php endif; ?>
                             </div>
-                            <div class="mission-info">
-                                <h3>Household Waste</h3>
-                                <p><strong>Location:</strong> Bd. Independentei</p>
-                                <p><strong>Info:</strong> Full bins after weekend event.</p>
-                            </div>
-                            <button class="action-button" style="background:#28a745;">Mark as Resolved</button>
-                        </div>
+                        <?php endwhile; ?>
                     </div>
                 </div>
             </div>
-
-            <div id="map" class="worker-content-section">
-                <div class="worker-card" style="padding: 0; overflow: hidden; height: 600px;">
-                    <div style="background: #0b3d1f; color: white; padding: 15px 25px;">
-                        <h2 style="margin:0; font-size: 20px;">Live Intervention Map</h2>
+            <div id="map-section" class="worker-content-section">
+                <div class="worker-card worker-map-card">
+                    <div class="map-title">
+                        <h2>Live Intervention Map</h2>
                     </div>
-                    <div id="map-placeholder" style="height: 100%; background: #eee; display: flex; align-items: center; justify-content: center;">
-                        <p style="color: #666;">[ Leaflet Map Loading... ]</p>
+                    <div class="map-container">
+                        <div id="map"></div>
+                        <button id="locateButton" class="locate-button">Locate me</button>
+                    </div>
+                    <div class="map-footer">
+                        <div class="legend">
+                            <div class="legend-item"><img src="assets/pinpaper.png"> Paper</div>
+                            <div class="legend-item"><img src="assets/pinplastic.png"> Plastic</div>
+                            <div class="legend-item"><img src="assets/pinmetal.png"> Metal</div>
+                            <div class="legend-item"><img src="assets/pinglass.png"> Glass</div>
+                            <div class="legend-item"><img src="assets/pinhousehold.png"> Household</div>
+                        </div>
+                    </div>
+                    <div class="report-overlay" id="reportOverlay" style="display:none;">
+                        <div class="report-overlay-box">
+                            <div class="close-btn" onclick="closeOverlay()">✕</div>
+                            <p><strong>Waste category:</strong> <span id="ovCategory"></span></p>
+                            <p><strong>Location:</strong> <span id="ovLocation"></span></p>
+                            <p><strong>Submitted by:</strong> <span id="ovUser"></span></p>
+                            <p><strong>Date:</strong> <span id="ovDate"></span></p>
+                            <p><strong>Status:</strong> <span id="ovStatus"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="confirm-overlay" id="confirmOverlay" style="display:none;">
+                    <div class="confirm-box">
+                        <h3 id="confirmText">Are you sure?</h3>
+                        <div class="confirm-buttons">
+                            <button id="cancelBtn">Cancel</button>
+                            <button id="confirmBtn">Yes</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="success-overlay" id="successOverlay" style="display:none;">
+                    <div class="success-box">
+                        <h2>Action completed!</h2>
+                        <p>Redirecting you to your dashboard.</p>
                     </div>
                 </div>
             </div>
-
-        </div>
     </section>
 
     <script>
@@ -203,31 +229,81 @@ $totalResolved = 12;
             const sections = document.querySelectorAll(".worker-content-section");
             const hamburger = document.getElementById("hamburger-menu");
             const navLinks = document.getElementById("nav-links");
-
-            // LOGICA SPA (Exact ca la Admin)
-            tabs.forEach(tab => {
-                tab.addEventListener("click", function(e) {
-                    if (this.getAttribute("href") === "logout.php") return;
-                    e.preventDefault();
-
-                    tabs.forEach(t => t.classList.remove("active"));
-                    sections.forEach(s => s.classList.remove("active"));
-
-                    this.classList.add("active");
-                    const target = this.getAttribute("data-target");
-                    document.getElementById(target).classList.add("active");
-
-                    navLinks.classList.remove("active");
-                    document.body.classList.remove("no-scroll");
-                });
-            });
-
-            // Hamburger
             hamburger.addEventListener("click", function() {
                 navLinks.classList.toggle("active");
                 document.body.classList.toggle("no-scroll");
             });
         });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const statusButtons = document.querySelectorAll(".filters button");
+            const categoryButtons = document.querySelectorAll(".category-filters button");
+            const missions = document.querySelectorAll(".mission-item");
+
+            let selectedStatus = "all";
+            let selectedCategory = "all";
+
+            statusButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    statusButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedStatus = this.dataset.status;
+                    filterMissions();
+                });
+            });
+
+            categoryButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    categoryButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedCategory = this.dataset.category;
+                    filterMissions();
+                });
+            });
+
+            function filterMissions() {
+                missions.forEach(mission => {
+                    const missionStatus = mission.dataset.status;
+                    const missionCategory = mission.dataset.category;
+                    const matchStatus = selectedStatus === "all" || missionStatus === selectedStatus;
+                    const matchCategory = selectedCategory === "all" || missionCategory === selectedCategory;
+                    if (matchStatus && matchCategory) { mission.style.display = "flex"; } 
+                    else { mission.style.display = "none"; }
+                });
+            }
+        });
+        let currentReportId = null;
+        let currentAction = null;
+
+        document.querySelectorAll(".action-button").forEach(btn => {
+            btn.addEventListener("click", function() {
+                currentReportId = this.dataset.id;
+                currentAction = this.dataset.action;
+                let text = "";
+                if (currentAction === "accept") text = "Send team to clean up?";
+                if (currentAction === "resolve") text = "Mark this mission as resolved?";
+                if (currentAction === "archive") text = "Archive this report?";
+                document.getElementById("confirmText").textContent = text;
+                document.getElementById("confirmOverlay").style.display = "flex";
+            });
+        });
+
+        document.getElementById("cancelBtn").onclick = () => { document.getElementById("confirmOverlay").style.display = "none"; };
+        document.getElementById("confirmBtn").onclick = () => {
+            document.getElementById("confirmOverlay").style.display = "none";
+            fetch("update_report.php", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                    body: `id=${currentReportId}&action=${currentAction}`
+                })
+                .then(res => res.text())
+                .then(() => {
+                    document.getElementById("successOverlay").style.display = "flex";
+                    setTimeout(() => { location.reload(); }, 1500);
+                });
+        };
     </script>
+    <script src="map.js"></script>
 </body>
+
 </html>
