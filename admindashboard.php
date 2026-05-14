@@ -1,7 +1,114 @@
 <?php
-$totalReports = 142;
-$totalUsers = 854;
-$resolved = 120;
+    $conn = new mysqli("localhost", "root", "", "citywatch");
+    if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+
+    $mode = $_GET['mode'] ?? 'daily';
+    $reportsStmt = $conn->prepare("SELECT r.*, c.name AS category_name, u.username FROM reports r JOIN categories c ON r.category_id = c.id JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
+
+    $reportsStmt->execute();
+    $reports = $reportsStmt->get_result();
+
+    $result = $conn->query("SELECT COUNT(*) as total FROM reports");
+    $row = $result->fetch_assoc();
+    $totalReports = $row['total'];
+
+    $result = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status='pending'");
+    $row = $result->fetch_assoc();
+    $pendingReports = $row['total'];
+
+    $result = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status='progress'");
+    $row = $result->fetch_assoc();
+    $progressReports = $row['total'];
+
+    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE status='resolved' OR status='archived'");
+    $row = $result->fetch_assoc();
+    $resolvedReports = $row['total'];
+
+    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE created_at >= NOW() - INTERVAL 7 DAY");
+    $row = $result->fetch_assoc();
+    $thisWeek = $row['total'];
+
+    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY");
+    $row = $result->fetch_assoc();
+    $lastWeek = $row['total'];
+
+    $change = 0;
+
+    if ($lastWeek > 0) {
+        $difference = $thisWeek - $lastWeek;
+        $change = ($difference / $lastWeek) * 100;
+    }
+
+    $categoryStats = [];
+    $categoryQuery = $conn->query("SELECT c.name, COUNT(*) as total FROM reports r JOIN categories c ON r.category_id = c.id GROUP BY c.name");
+    while ($row = $categoryQuery->fetch_assoc()) {
+        $name = ucfirst($row['name']); 
+        $categoryStats[$name] = $row['total'];
+    }
+
+    $categoryPercentages = [];
+    foreach ($categoryStats as $name => $count) { $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;}
+
+    $colors = [ "Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+
+    $start = 0;
+    $gradientParts = [];
+
+    foreach ($categoryPercentages as $name => $percent) {
+        $end = $start + $percent;
+        $color = $colors[$name] ?? "#ccc";
+        $gradientParts[] = "$color {$start}% {$end}%";
+        $start = $end;
+    }
+    $gradient = implode(", ", $gradientParts);
+
+    $dailyReports = [];
+
+    $query = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
+
+    while ($row = $query->fetch_assoc()) { $dailyReports[$row['day']] = $row['total'];}
+
+    $chartData = [];
+    $labels = [];
+
+    if ($mode === 'weekly') {
+        $weeklyReports = [];
+        $query = $conn->query("SELECT YEARWEEK(created_at, 1) as week, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 8 WEEK GROUP BY week");
+        while ($row = $query->fetch_assoc()) { $weeklyReports[$row['week']] = $row['total']; }
+        for ($i = 7; $i >= 0; $i--) {
+            $week = date("oW", strtotime("-$i week"));
+            $labels[] = "W" . substr($week, -2);
+            $chartData[] = $weeklyReports[$week] ?? 0;
+        }
+    } else {
+        $dailyReports = [];
+        $query = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
+        while ($row = $query->fetch_assoc()) { $dailyReports[$row['day']] = $row['total']; }
+        for ($i = 6; $i >= 0; $i--) {
+            $date = date("Y-m-d", strtotime("-$i days"));
+            $labels[] = date("D", strtotime($date));
+            $chartData[] = $dailyReports[$date] ?? 0;
+        }
+    }
+
+    $max = max($chartData) ?: 1;
+    $points = [];
+
+    $width = 300;
+    $height = 150;
+    $stepX = $width / (count($chartData) - 1);
+
+    foreach ($chartData as $i => $value) {
+        $x = $i * $stepX;
+        $y = $height - ($value / $max * $height);
+        $points[] = "$x,$y";
+    }
+    $pointsString = implode(" ", $points);
+
+    $ySteps = 5;
+    $yLabels = [];
+
+    for ($i = $ySteps; $i >= 0; $i--) { $yLabels[] = round(($max / $ySteps) * $i); }
 ?>
 
 <!DOCTYPE html>
@@ -22,117 +129,269 @@ $resolved = 120;
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <nav class="nav-links" id="nav-links">
-            <a href="#overview" class="nav-tab active" data-target="overview">Overview</a>
-            <a href="#reports" class="nav-tab" data-target="reports">Reports DB</a>
-            <a href="#users" class="nav-tab" data-target="users">User Control</a>
-            <a href="#statistics" class="nav-tab" data-target="statistics">Statistics</a>
-            <a href="#settings" class="nav-tab" data-target="settings">System Logs</a>
+            <a href="admindashboard.php" class="nav-tab active">Overview</a>
+            <a href="admin_reports.php" class="nav-tab">Reports DB</a>
+            <a href="admin_users.php" class="nav-tab">User Control</a>
+            <a href="admin_statistics.php" class="nav-tab">Statistics</a>
+            <a href="admin_systemlogs.php" class="nav-tab">System Logs</a>
             <a href="logout.php" class="button logout-button">Logout</a>
         </nav>
     </header>
-
     <section class="dashboard-section">
         <div class="overlay"></div>
         <div class="dashboard-container admin-layout">
-
             <div id="overview" class="admin-content-section active">
                 <h1 class="admin-title">Command Center Overview</h1>
-
+                <h2 class="admin-subtitle">Welcome back! Here's what's happening in the city.</h2>
                 <div class="admin-overview-grid">
-                    <div class="impact-card">
-                        <div class="card-header">Global Reports</div>
-                        <h3 class="impact-number"><?= $totalReports ?></h3>
+                    <div class="stat-card">
+                        <div class="stat-header header-green">
+                            <img src="assets/adminReportsTotalIcon.png">
+                            <span>Total Reports</span>
+                        </div>
+                        <div class="stat-body">
+                            <h3><?php echo $totalReports; ?></h3>
+                            <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
+                                <?= $change >= 0 ? '↑' : '↓' ?> <?= abs(round($change)) ?>% from last week
+                            </span>
+                        </div>
                     </div>
-
-                    <div class="impact-card">
-                        <div class="card-header">System Users</div>
-                        <h3 class="impact-number"><?= $totalUsers ?></h3>
+                    <div class="stat-card">
+                        <div class="stat-header header-red">
+                            <img src="assets/apPending.png">
+                            <span>Pending Reports</span>
+                        </div>
+                        <div class="stat-body">
+                            <h3><?php echo $pendingReports; ?></h3>
+                            <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
+                                <?= $change >= 0 ? '↑' : '↓' ?> <?= abs(round($change)) ?>% from last week
+                            </span>
+                        </div>
                     </div>
-
-                    <div class="impact-card impact-success">
-                        <div class="card-header header-success">Resolved Issues</div>
-                        <h3 class="impact-number text-success"><?= $resolved ?></h3>
+                    <div class="stat-card">
+                        <div class="stat-header header-orange">
+                            <img src="assets/apInProgress.png">
+                            <span>In Progress</span>
+                        </div>
+                        <div class="stat-body">
+                            <h3><?php echo $progressReports; ?></h3>
+                            <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
+                                <?= $change >= 0 ? '↑' : '↓' ?> <?= abs(round($change)) ?>% from last week
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header header-green-soft">
+                            <img src="assets/apResolved.png">
+                            <span>Resolved Reports</span>
+                        </div>
+                        <div class="stat-body">
+                            <h3><?php echo $resolvedReports; ?></h3>
+                            <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
+                                <?= $change >= 0 ? '↑' : '↓' ?> <?= abs(round($change)) ?>% from last week
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div id="users" class="admin-content-section">
-                <div class="admin-table-card">
-                    <div class="table-header-tools">
-                        <h2>Accounts Management</h2>
-                        <input type="text" class="search-bar-admin" placeholder="Search user by email...">
+                <div class="admin-map-section">
+                    <h2 class="admin-section-title">Reports Map Overview</h2>
+                    <div class="admin-map-grid">
+                        <div class="worker-card worker-map-card">
+                            <div class="map-container">
+                                <div id="map"></div>
+                                <button id="locateButton" class="locate-button">Locate me</button>
+                            </div>
+                            <div class="map-footer">
+                                <div class="legend">
+                                    <div class="legend-item"><img src="assets/pinpaper.png"> Paper</div>
+                                    <div class="legend-item"><img src="assets/pinplastic.png"> Plastic</div>
+                                    <div class="legend-item"><img src="assets/pinmetal.png"> Metal</div>
+                                    <div class="legend-item"><img src="assets/pinglass.png"> Glass</div>
+                                    <div class="legend-item"><img src="assets/pinhousehold.png"> Household</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-right-panel">
+                            <div class="worker-filters">
+                                <div class="filters">
+                                    <p>Filter:</p>
+                                    <button class="active" data-status="all">All</button>
+                                    <button data-status="pending">Pending</button>
+                                    <button data-status="progress">In progress</button>
+                                    <button data-status="resolved">Resolved</button>
+                                </div>
+                                <div class="category-filters">
+                                    <p>Categories:</p>
+                                    <button class="active" data-category="all">All</button>
+                                    <button data-category="plastic">Plastic</button>
+                                    <button data-category="glass">Glass</button>
+                                    <button data-category="paper">Paper</button>
+                                    <button data-category="metal">Metal</button>
+                                    <button data-category="household">Household</button>
+                                </div>
+                            </div>
+                            <div class="admin-reports-card">
+                                <div class="admin-reports-header">
+                                    <h3>Recent Reports</h3>
+                                    <a href="#" id="toggleReports">View All Reports →</a>
+                                </div>
+                                <div class="admin-reports-list">
+                                    <?php
+                                    $reports->data_seek(0);
+                                    $index = 0;
+                                    while ($row = $reports->fetch_assoc()):
+                                        $index++;
+                                        $icon = "";
+                                        switch ($row['category_id']) { 
+                                            case 1: $icon = "assets/iconplastic.png"; break;
+                                            case 2: $icon = "assets/iconpaper.png"; break;
+                                            case 3: $icon = "assets/iconglass.png"; break;
+                                            case 4: $icon = "assets/iconmetal.png"; break;
+                                            case 5: $icon = "assets/iconhousehold.png"; break;
+                                        }
+                                        $statusClass = "";
+                                        if ($row['status'] == "pending") $statusClass = "status-pending";
+                                        elseif ($row['status'] == "progress") $statusClass = "status-progress";
+                                        elseif ($row['status'] == "resolved" || $row['status'] == "archived") $statusClass = "status-resolved";
+                                    ?>
+                                        <div class="admin-report-item"
+                                            data-index="<?= $index ?>"
+                                            data-status="<?= $row['status'] ?>"
+                                            data-category="<?= strtolower($row['category_name']) ?>">
+                                            <div class="report-left"><img src="<?= $icon ?>" class="report-icon"></div>
+                                            <div class="report-center">
+                                                <strong><?= htmlspecialchars($row['category_name']) ?> Waste</strong>
+                                                <span><?= htmlspecialchars($row['location']) ?></span>
+                                            </div>
+                                            <div class="report-right">
+                                                <span class="badge-status <?= $statusClass ?>"><?= ucfirst($row['status']) ?></span>
+                                                <small><?= date("H:i", strtotime($row['created_at'])) ?></small>
+                                            </div>
+                                        </div>
+                                    <?php endwhile; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-overlay" id="reportOverlay" style="display:none;">
+                            <div class="report-overlay-box">
+                                <div class="close-btn" onclick="closeOverlay()">✕</div>
+                                <p><strong>Waste category:</strong> <span id="ovCategory"></span></p>
+                                <p><strong>Location:</strong> <span id="ovLocation"></span></p>
+                                <p><strong>Submitted by:</strong> <span id="ovUser"></span></p>
+                                <p><strong>Date:</strong> <span id="ovDate"></span></p>
+                                <p><strong>Status:</strong> <span id="ovStatus"></span></p>
+                            </div>
+                        </div>
                     </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Account</th>
-                                <th>Status</th>
-                                <th>Role</th>
-                                <th>Last Login</th>
-                                <th>Control</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Botezatu George</strong><br><small>george@admin.com</small></td>
-                                <td><span class="status-active">● Active</span></td>
-                                <td><span class="badge role-admin">Admin</span></td>
-                                <td>2 mins ago</td>
-                                <td><button class="pro-btn btn-logs">View Logs</button></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Andreea Simona</strong><br><small>andreea@worker.com</small></td>
-                                <td><span class="status-active">● Active</span></td>
-                                <td><span class="badge role-worker">Worker</span></td>
-                                <td>Today, 04:20 AM</td>
-                                <td><button class="pro-btn btn-danger-soft">Revoke Access</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-
-            <div id="reports" class="admin-content-section">
-                <div class="admin-table-card">
-                    <div class="table-header-tools">
-                        <h2>Infrastructure Reports</h2>
-                        <button class="pro-btn btn-primary">Export CSV</button>
+                <div class="admin-stats-section">
+                    <div class="admin-stats-grid">
+                        <div class="admin-card">
+                            <div class="card-header-row"><h3>Reports by category</h3></div>
+                            <div class="category-chart-wrapper">
+                                <div class="donut-chart" style="background: conic-gradient(<?= $gradient ?>)">
+                                    <div class="donut-center">
+                                        <strong><?= $totalReports ?></strong>
+                                        <span>total</span>
+                                    </div>
+                                </div>
+                                <div class="category-legend">
+                                    <?php foreach ($categoryStats as $name => $count): ?>
+                                        <div class="legend-item">
+                                            <img src="assets/pin<?= strtolower($name) ?>.png">
+                                            <span><?= $name ?></span>
+                                            <span class="legend-value"><?= $categoryPercentages[$name] ?>% (<?= $count ?> reports)</span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <a href="#" class="view-link">View Full Statistics →</a>
+                        </div>
+                        <div class="admin-card">
+                            <div class="card-header-row">
+                                <h3>Reports Over Time</h3>
+                                <select id="chartMode" class="small-select">
+                                    <option value="daily" <?= $mode === 'daily' ? 'selected' : '' ?>>Daily</option>
+                                    <option value="weekly" <?= $mode === 'weekly' ? 'selected' : '' ?>>Weekly</option>
+                                </select>
+                            </div>
+                            <div class="line-chart-wrapper">
+                                <div class="chart-axes">
+                                    <div class="y-axis">
+                                        <?php foreach ($yLabels as $y): ?><span><?= $y ?></span><?php endforeach; ?>
+                                    </div>
+                                    <div class="graph-area">
+                                        <svg viewBox="0 0 300 150" class="line-svg">
+                                            <polyline fill="none" stroke="#1b641b" stroke-width="3" points="<?= $pointsString ?>" />
+                                            <?php foreach ($chartData as $i => $value):
+                                                $x = $i * $stepX;
+                                                $y = 150 - ($value / $max * 150);
+                                            ?>
+                                                <circle cx="<?= $x ?>" cy="<?= $y ?>" r="4" class="chart-dot"
+                                                    data-value="<?= $value ?>"
+                                                    data-label="<?= $labels[$i] ?>" />
+                                            <?php endforeach; ?>
+                                        </svg>
+                                        <div id="chartTooltip" class="chart-tooltip"></div>
+                                    </div>
+                                </div>
+                                <div class="x-axis">
+                                    <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
+                                </div>
+                            </div>
+                            <a href="#" class="view-link">View Full Statistics →</a>
+                        </div>
                     </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Category</th>
-                                <th>Location</th>
-                                <th>Urgency</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#4491</td>
-                                <td><strong>Metal Waste</strong></td>
-                                <td>Iasi, Copou</td>
-                                <td><span class="urgency-high">HIGH</span></td>
-                                <td><button class="pro-btn btn-blue">Assign Crew</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    
+                    <form method="GET" action="generate_report.php">
+                        <div class="admin-card admin-generate-card">
+                            <div class="generate-left">
+                                <h3>Generate Report</h3>
+                                <p>Export data and analysis</p>
+                                <div class="form-group">
+                                    <label>Time Period</label>
+                                    <select name="period">
+                                        <option value="week">This week</option>
+                                        <option value="month">This month</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Format</label>
+                                    <div class="format-buttons">
+                                        <button type="submit" name="format" value="csv" class="active">CSV</button>
+                                        <button type="submit" name="format" value="pdf">PDF</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="generate-middle">
+                                <div class="form-group">
+                                    <label>Category</label>
+                                    <select name="category">
+                                        <option value="all">All</option>
+                                        <option value="plastic">Plastic</option>
+                                        <option value="glass">Glass</option>
+                                        <option value="paper">Paper</option>
+                                        <option value="metal">Metal</option>
+                                        <option value="household">Household</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select name="status">
+                                        <option value="all">All</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="generate-right"><button type="submit" class="generate-btn">Generate Report</button></div>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div id="settings" class="admin-content-section">
-                <div class="admin-table-card logs-card">
-                    <h2>> System Internal Logs</h2>
-                    <p>[06:12:01] Database backup completed successfully.</p>
-                    <p>[06:10:45] New admin login detected: IP 192.168.1.5</p>
-                    <p>[05:55:12] Auto-report: 5 issues moved to "Overdue" status.</p>
-                </div>
-            </div>
-
         </div>
     </section>
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const tabs = document.querySelectorAll(".nav-tab");
@@ -140,30 +399,112 @@ $resolved = 120;
             const hamburger = document.getElementById("hamburger-menu");
             const navLinks = document.getElementById("nav-links");
 
-            tabs.forEach(tab => {
-                tab.addEventListener("click", function(e) {
-                    if (this.getAttribute("href") === "logout.php") return;
-                    e.preventDefault();
-
-                    tabs.forEach(t => t.classList.remove("active"));
-                    sections.forEach(s => s.classList.remove("active"));
-
-                    this.classList.add("active");
-                    const target = this.getAttribute("data-target");
-                    const activeSection = document.getElementById(target);
-                    
-                    activeSection.classList.add("active");
-
-                    navLinks.classList.remove("active");
-                    document.body.classList.remove("no-scroll");
-                });
-            });
-
             hamburger.addEventListener("click", function() {
                 navLinks.classList.toggle("active");
                 document.body.classList.toggle("no-scroll");
             });
+            const statusButtons = document.querySelectorAll(".filters button");
+            const categoryButtons = document.querySelectorAll(".category-filters button");
+            const reports = document.querySelectorAll(".admin-report-item");
+
+            let selectedStatus = "all";
+            let selectedCategory = "all";
+
+            statusButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    statusButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedStatus = this.dataset.status;
+                    filterReports();
+                });
+            });
+
+            categoryButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    categoryButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedCategory = this.dataset.category;
+                    filterReports();
+                });
+            });
+
+            function filterReports() {
+                reports.forEach(report => {
+                    const reportStatus = report.dataset.status;
+                    const reportCategory = report.dataset.category;
+                    const matchStatus = selectedStatus === "all" || reportStatus === selectedStatus;
+                    const matchCategory = selectedCategory === "all" || reportCategory === selectedCategory;
+                    report.style.display = (matchStatus && matchCategory) ? "flex" : "none";
+                });
+            }
+            const actionButtons = document.querySelectorAll(".action-button");
+            let currentReportId = null;
+            let currentAction = null;
+
+            actionButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    currentReportId = this.dataset.id;
+                    currentAction = this.dataset.action;
+                    let text = "";
+                    if (currentAction === "accept") text = "Send team to clean up?";
+                    if (currentAction === "resolve") text = "Mark this mission as resolved?";
+                    if (currentAction === "archive") text = "Archive this report?";
+                    document.getElementById("confirmText").textContent = text;
+                    document.getElementById("confirmOverlay").style.display = "flex";
+                });
+            });
+
+            const cancelBtn = document.getElementById("cancelBtn");
+            const confirmBtn = document.getElementById("confirmBtn");
+
+            if (cancelBtn) { cancelBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none"; }; }
+            if (confirmBtn) {  confirmBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none";
+                    fetch("update_report.php", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${currentReportId}&action=${currentAction}` })
+                        .then(res => res.text())
+                        .then(() => { document.getElementById("successOverlay").style.display = "flex"; setTimeout(() => location.reload(), 1500); });
+                };
+            }
+        });
+
+        const toggleBtn = document.getElementById("toggleReports");
+        let expanded = false;
+        function applyLimit() {
+            const reports = document.querySelectorAll(".admin-report-item");
+            reports.forEach(report => {
+                const index = parseInt(report.dataset.index);
+                if (!expanded && index > 3) { report.style.display = "none";
+                } else { report.style.display = "flex"; }
+            });
+        }
+        applyLimit();
+        toggleBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            expanded = !expanded;
+            applyLimit();
+            toggleBtn.textContent = expanded ? "Show Less Reports ↑" : "View All Reports →";
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const tooltip = document.getElementById("chartTooltip");
+            const dots = document.querySelectorAll(".chart-dot");
+            dots.forEach(dot => { dot.addEventListener("mousemove", (e) => {
+                    const value = dot.dataset.value;
+                    const label = dot.dataset.label;
+                    tooltip.innerHTML = `${label}: ${value} reports`;
+                    tooltip.style.display = "block";
+                    tooltip.style.left = e.clientX + 10 + "px";
+                    tooltip.style.top = e.clientY - 30 + "px";
+                    tooltip.style.opacity = 1;
+                });
+                dot.addEventListener("mouseleave", () => { tooltip.style.opacity = 0;  tooltip.style.display = "none";  });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const modeSelect = document.getElementById("chartMode");
+            if (modeSelect) { modeSelect.addEventListener("change", function () { const mode = this.value;  window.location.href = "?mode=" + mode; }); }
         });
     </script>
+    <script src="map.js"></script>
 </body>
 </html>
