@@ -305,7 +305,7 @@
                                     <?php endforeach; ?>
                                 </div>
                             </div>
-                            <a href="#" class="view-link">View Full Statistics →</a>
+                            <a href="admin_statistics.php" class="view-link">View Full Statistics →</a>
                         </div>
                         <div class="admin-card">
                             <div class="card-header-row">
@@ -339,10 +339,10 @@
                                     <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
                                 </div>
                             </div>
-                            <a href="#" class="view-link">View Full Statistics →</a>
+                            <a href="admin_statistics.php" class="view-link">View Full Statistics →</a>
                         </div>
                     </div>
-                    
+
                     <form method="GET" action="generate_report.php">
                         <div class="admin-card admin-generate-card">
                             <div class="generate-left">
