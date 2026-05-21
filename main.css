@@ -2578,19 +2578,15 @@ footer {
     background: #9bc27c;
     border: none;
     padding: 10px;
+    cursor: pointer;
     border-radius: 10px;
 }
-
+.btn-edit:hover {
+    background: #8aae6a;
+}
 .btn-role {
     background: #fff;
     border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.btn-danger {
-    background: #e98a8a;
-    border: none;
     padding: 10px;
     border-radius: 10px;
 }
@@ -2631,7 +2627,9 @@ footer {
     border-radius: 10px;
     cursor: pointer;
 }
-
+.btn-danger:hover {
+    background: #c0392b;
+}
 .btn-secondary {
     background: #ccc;
     border: none;
@@ -2639,3 +2637,18 @@ footer {
     border-radius: 10px;
     cursor: pointer;
 }
+.btn-save {
+    background: #0a561a;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-save:hover {
+    background: #16a34a;
+}
+

@@ -23,7 +23,14 @@
         echo "deleted";
         exit;
     }
+if ($action === "edit") {
+    $role = $_POST['role'];
+    $email = $_POST['email'];
 
+    $stmt = $conn->prepare("UPDATE users SET role=?, email=? WHERE id=?");
+    $stmt->bind_param("ssi", $role, $email, $id);
+    $stmt->execute();
+}
     if ($action === "deactivate") {
 
         $stmt = $conn->prepare("UPDATE users SET status = 'inactive' WHERE id = ?");

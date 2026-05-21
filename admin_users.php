@@ -1,100 +1,106 @@
 <?php
-    $conn = new mysqli("localhost", "root", "", "citywatch");
-    if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+$conn = new mysqli("localhost", "root", "", "citywatch");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-    $result = $conn->query("SELECT COUNT(*) as total FROM users");
-    $row = $result->fetch_assoc();
-    $totalUsers = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total FROM users");
+$row = $result->fetch_assoc();
+$totalUsers = $row['total'];
 
-    $result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='user'");
-    $row = $result->fetch_assoc();
-    $totalCitizens = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='user'");
+$row = $result->fetch_assoc();
+$totalCitizens = $row['total'];
 
-    $result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='worker'");
-    $row = $result->fetch_assoc();
-    $totalWorkers = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='worker'");
+$row = $result->fetch_assoc();
+$totalWorkers = $row['total'];
 
-    $result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='admin'");
-    $row = $result->fetch_assoc();
-    $totalAdmins = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='admin'");
+$row = $result->fetch_assoc();
+$totalAdmins = $row['total'];
 
-    $result = $conn->query("SELECT COUNT(*) as total FROM users WHERE created_at >= NOW() - INTERVAL 7 DAY");
-    $row = $result->fetch_assoc();
-    $thisWeekUsers = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE created_at >= NOW() - INTERVAL 7 DAY");
+$row = $result->fetch_assoc();
+$thisWeekUsers = $row['total'];
 
-    $result = $conn->query("SELECT COUNT(*) as total  FROM users  WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY");
-    $row = $result->fetch_assoc();
-    $lastWeekUsers = $row['total'];
+$result = $conn->query("SELECT COUNT(*) as total  FROM users  WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY");
+$row = $result->fetch_assoc();
+$lastWeekUsers = $row['total'];
 
-    $userChange = 0;
+$userChange = 0;
 
-    if ($lastWeekUsers > 0) {
-        $difference = $thisWeekUsers - $lastWeekUsers;
-        $userChange = ($difference / $lastWeekUsers) * 100;
-    }
-    $limit = 5;
-    $page = max(1, (int)($_GET['page'] ?? 1));
+if ($lastWeekUsers > 0) {
+    $difference = $thisWeekUsers - $lastWeekUsers;
+    $userChange = ($difference / $lastWeekUsers) * 100;
+}
+$limit = 5;
+$page = max(1, (int)($_GET['page'] ?? 1));
 
-    $offset = ($page - 1) * $limit;
+$offset = ($page - 1) * $limit;
 
-    $where = [];
-    $params = [];
-    $types = "";
+$where = [];
+$params = [];
+$types = "";
 
-    if (!empty($_GET['search'])) {
-        $search = "%" . $_GET['search'] . "%";
-        $where[] = "(u.username LIKE ? OR u.email LIKE ?)";
-        $params[] = $search;
-        $params[] = $search;
-        $types .= "ss";
-    }
-    if (!empty($_GET['role'])) {
-        $where[] = "u.role = ?";
-        $params[] = $_GET['role'];
-        $types .= "s";
-    }
-    if (!empty($_GET['status'])) {
-        $where[] = "u.status = ?";
-        $params[] = $_GET['status'];
-        $types .= "s";
-    }
-    if (!empty($_GET['date_from']) && !empty($_GET['date_to'])) {
-        $where[] = "DATE(u.created_at) BETWEEN ? AND ?";
-        $params[] = $_GET['date_from'];
-        $params[] = $_GET['date_to'];
-        $types .= "ss";
-    }
+if (!empty($_GET['search'])) {
+    $search = "%" . $_GET['search'] . "%";
+    $where[] = "(u.username LIKE ? OR u.email LIKE ?)";
+    $params[] = $search;
+    $params[] = $search;
+    $types .= "ss";
+}
+if (!empty($_GET['role'])) {
+    $where[] = "u.role = ?";
+    $params[] = $_GET['role'];
+    $types .= "s";
+}
+if (!empty($_GET['status'])) {
+    $where[] = "u.status = ?";
+    $params[] = $_GET['status'];
+    $types .= "s";
+}
+if (!empty($_GET['date_from']) && !empty($_GET['date_to'])) {
+    $where[] = "DATE(u.created_at) BETWEEN ? AND ?";
+    $params[] = $_GET['date_from'];
+    $params[] = $_GET['date_to'];
+    $types .= "ss";
+}
 
-    $countSql = "SELECT COUNT(*) as total FROM users u";
+$countSql = "SELECT COUNT(*) as total FROM users u";
 
-    if (!empty($where)) {  $countSql .= " WHERE " . implode(" AND ", $where); }
+if (!empty($where)) {
+    $countSql .= " WHERE " . implode(" AND ", $where);
+}
 
-    $countStmt = $conn->prepare($countSql);
+$countStmt = $conn->prepare($countSql);
 
-    if (!empty($params)) {
-        $countTypes = $types;
-        $countStmt->bind_param($countTypes, ...$params);
-    }
+if (!empty($params)) {
+    $countTypes = $types;
+    $countStmt->bind_param($countTypes, ...$params);
+}
 
-    $countStmt->execute();
-    $totalUsers = $countStmt->get_result()->fetch_assoc()['total'];
-    $totalPages = ceil($totalUsers / $limit);
+$countStmt->execute();
+$totalUsers = $countStmt->get_result()->fetch_assoc()['total'];
+$totalPages = ceil($totalUsers / $limit);
 
-    $sql = "SELECT u.*, COUNT(r.id) as reports_count FROM users u LEFT JOIN reports r ON r.user_id = u.id";
+$sql = "SELECT u.*, COUNT(r.id) as reports_count FROM users u LEFT JOIN reports r ON r.user_id = u.id";
 
-    if (!empty($where)) { $sql .= " WHERE " . implode(" AND ", $where); }
+if (!empty($where)) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
 
-    $sql .= " GROUP BY u.id";
-    $sql .= " LIMIT ? OFFSET ?";
+$sql .= " GROUP BY u.id";
+$sql .= " LIMIT ? OFFSET ?";
 
-    $params[] = $limit;
-    $params[] = $offset;
-    $types .= "ii";
+$params[] = $limit;
+$params[] = $offset;
+$types .= "ii";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$stmt = $conn->prepare($sql);
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -262,6 +268,7 @@
                                             </td>
                                             <td class="actions-cell">
                                                 <button class="icon-btn view-btn"
+                                                    data-id="<?= $user['id'] ?>"
                                                     data-name="<?= htmlspecialchars($user['username']) ?>"
                                                     data-role="<?= $user['role'] ?>"
                                                     data-email="<?= htmlspecialchars($user['email']) ?>"
@@ -270,8 +277,15 @@
                                                     data-reports="<?= $user['reports_count'] ?>">
                                                     <img src="assets/adminReportsDetails.png">
                                                 </button>
-                                                <button class="icon-btn"><img src="assets/adminReportsEdit.png"></button>
-                                                <button class="icon-btn danger delete-btn" data-id="<?= $user['id'] ?>">
+                                                <button class="icon-btn edit-btn"
+                                                    data-id="<?= $user['id'] ?>"
+                                                    data-name="<?= htmlspecialchars($user['username']) ?>"
+                                                    data-role="<?= $user['role'] ?>"
+                                                    data-email="<?= htmlspecialchars($user['email']) ?>">
+                                                    <img src="assets/adminReportsEdit.png">
+                                                </button>
+                                                <button class="icon-btn danger delete-btn"
+                                                    data-id="<?= $user['id'] ?>">
                                                     <img src="assets/adminReportsDelete.png">
                                                 </button>
                                             </td>
@@ -300,16 +314,28 @@
                             <h2 id="detailName">Select a user</h2>
 
                             <div class="details-info">
-                                <p><strong>Role:</strong> <span id="detailRole"></span></p>
-                                <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+                                <p>
+                                    <strong>Role:</strong>
+                                    <span id="detailRole"></span>
+                                    <select id="editRole" class="edit-field" style="display:none;">
+                                        <option value="admin">Admin</option>
+                                        <option value="worker">Worker</option>
+                                        <option value="user">User</option>
+                                    </select>
+                                </p>
+                                <p>
+                                    <strong>Email:</strong>
+                                    <span id="detailEmail"></span>
+                                    <input id="editEmail" class="edit-field" style="display:none;">
+                                </p>
                                 <p><strong>Joined:</strong> <span id="detailJoined"></span></p>
                                 <p><strong>Reports:</strong> <span id="detailReports"></span></p>
                                 <p><strong>Status:</strong> <span id="detailStatus"></span></p>
                             </div>
 
                             <div class="details-actions">
-                                <button class="btn-edit">Edit User</button>
-                                <button class="btn-role">Change Role</button>
+                                <button class="btn-edit" id="editUserBtn">Edit User</button>
+                                <button class="btn-save" id="saveUserBtn">Save Changes</button> 
                                 <button class="btn-danger" id="deactivateBtn">Deactivate User</button>
                             </div>
                         </div>
@@ -338,12 +364,50 @@
                 document.getElementById("detailReports").innerText = btn.dataset.reports;
                 document.getElementById("detailStatus").innerText = btn.dataset.status;
                 document.getElementById("deactivateBtn").dataset.id = btn.closest("tr").querySelector(".delete-btn").dataset.id;
-
+                document.getElementById("editRole").value = btn.dataset.role;
+                document.getElementById("editEmail").value = btn.dataset.email;
                 panel.style.display = "block";
             });
         });
+        document.querySelectorAll(".edit-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.getElementById("detailName").innerText = btn.dataset.name;
+                document.getElementById("editRole").value = btn.dataset.role;
+                document.getElementById("editEmail").value = btn.dataset.email;
+                selectedUserId = btn.dataset.id;
+                enableEditMode();
+                panel.style.display = "block";
+            });
+        });
+        document.getElementById("editUserBtn").addEventListener("click", () => {
+            enableEditMode();
+        });
 
-        function closeDetails() { panel.style.display = "none"; }
+        function enableEditMode() {
+            document.querySelectorAll(".edit-field").forEach(el => {
+                el.style.display = "block";
+            });
+            document.querySelectorAll("#detailRole, #detailEmail").forEach(el => {
+                el.style.display = "none";
+            });
+            document.getElementById("saveUserBtn").style.display = "block";
+        }
+        document.getElementById("saveUserBtn").addEventListener("click", () => {
+            const role = document.getElementById("editRole").value;
+            const email = document.getElementById("editEmail").value;
+            fetch("user_action.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `id=${selectedUserId}&action=edit&role=${role}&email=${email}`
+                })
+                .then(() => location.reload());
+        });
+
+        function closeDetails() {
+            panel.style.display = "none";
+        }
 
         let selectedUserId = null;
         let currentAction = null;
@@ -364,9 +428,17 @@
             document.getElementById("deleteOverlay").style.display = "flex";
         });
 
-        document.getElementById("cancelDelete").onclick = () => { document.getElementById("deleteOverlay").style.display = "none"; };
+        document.getElementById("cancelDelete").onclick = () => {
+            document.getElementById("deleteOverlay").style.display = "none";
+        };
         document.getElementById("confirmDelete").onclick = () => {
-            fetch("user_action.php", { method: "POST",  headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${selectedUserId}&action=${currentAction}` })
+            fetch("user_action.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `id=${selectedUserId}&action=${currentAction}`
+                })
                 .then(() => location.reload());
         };
     </script>
