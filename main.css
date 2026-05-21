@@ -2651,4 +2651,73 @@ footer {
 .btn-save:hover {
     background: #16a34a;
 }
+.status-pending {
+  background: #ffe0e0;
+  color: #d32f2f;
+}
 
+
+.status-in_progress {
+  background: #fff3cd;
+  background: #856404;
+}
+
+
+.status-resolved {
+  color: #ffffff;
+  background: #2e7d32;
+}
+.category-1 {
+  color: #1f1f1f;
+  background: #f2ff00;
+}
+.category-2 {
+  color: #ffffff;
+  background: #596ec9;
+}
+.category-3 {
+  color: #ffffff;
+  background: #1d8f00;
+}
+.category-4 {
+  color: #ffffff;
+  background: #dc3a3a;
+}
+.category-5 {
+  color: #ffffff;
+  background: #934c12;
+}
+.edit-field {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.edit-field:focus {
+    border-color: #1e7e34;
+    outline: none;
+}.btn-edit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.btn-archive {
+    display: none;
+}
+
+.btn-archive {
+    padding: 10px 18px;
+    border-radius: 20px;
+    border: none;
+    background: #6c757d;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-archive:hover {
+    background: #5a6268; 
+}
