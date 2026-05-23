@@ -1,3 +1,93 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php"); exit();
+}
+
+$conn = new mysqli("localhost", "root", "", "citywatch");
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+
+$mode = $_GET['mode'] ?? 'daily';
+
+$totalReports    = $conn->query("SELECT COUNT(*) as t FROM reports")->fetch_assoc()['t'];
+$pendingReports  = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='pending'")->fetch_assoc()['t'];
+$progressReports = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='progress'")->fetch_assoc()['t'];
+$resolvedReports = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='resolved' OR status='archived'")->fetch_assoc()['t'];
+
+$thisWeek = $conn->query("SELECT COUNT(*) as t FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
+$lastWeek = $conn->query("SELECT COUNT(*) as t FROM reports WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
+$change = $lastWeek > 0 ? round((($thisWeek - $lastWeek) / $lastWeek) * 100) : 0;
+
+$categoryStats = [];
+$catQuery = $conn->query("SELECT c.name, COUNT(*) as total FROM reports r JOIN categories c ON r.category_id = c.id GROUP BY c.name");
+while ($row = $catQuery->fetch_assoc()) {
+    $categoryStats[ucfirst($row['name'])] = $row['total'];
+}
+$categoryPercentages = [];
+foreach ($categoryStats as $name => $count) {
+    $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
+}
+$colors = ["Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+$start = 0; $gradientParts = [];
+foreach ($categoryPercentages as $name => $percent) {
+    $end = $start + $percent;
+    $gradientParts[] = ($colors[$name] ?? "#ccc") . " {$start}% {$end}%";
+    $start = $end;
+}
+$gradient = implode(", ", $gradientParts);
+
+$statusColors = ["pending" => "#eb3e31", "progress" => "#e7a01b", "resolved" => "#1fc132", "archived" => "#888"];
+$statusStats = [];
+$statusQuery = $conn->query("SELECT status, COUNT(*) as total FROM reports GROUP BY status");
+while ($row = $statusQuery->fetch_assoc()) { $statusStats[$row['status']] = $row['total']; }
+$statusStart = 0; $statusGradientParts = [];
+foreach ($statusStats as $status => $count) {
+    $pct = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
+    $statusEnd = $statusStart + $pct;
+    $statusGradientParts[] = ($statusColors[$status] ?? "#ccc") . " {$statusStart}% {$statusEnd}%";
+    $statusStart = $statusEnd;
+}
+$statusGradient = implode(", ", $statusGradientParts);
+
+$chartData = []; $labels = [];
+if ($mode === 'weekly') {
+    $q = $conn->query("SELECT YEARWEEK(created_at, 1) as week, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 8 WEEK GROUP BY week");
+    $weeklyReports = [];
+    while ($row = $q->fetch_assoc()) { $weeklyReports[$row['week']] = $row['total']; }
+    for ($i = 7; $i >= 0; $i--) {
+        $week = date("oW", strtotime("-$i week"));
+        $labels[] = "W" . substr($week, -2);
+        $chartData[] = $weeklyReports[$week] ?? 0;
+    }
+} else {
+    $q = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
+    $dailyReports = [];
+    while ($row = $q->fetch_assoc()) { $dailyReports[$row['day']] = $row['total']; }
+    for ($i = 6; $i >= 0; $i--) {
+        $date = date("Y-m-d", strtotime("-$i days"));
+        $labels[] = date("D", strtotime($date));
+        $chartData[] = $dailyReports[$date] ?? 0;
+    }
+}
+$max = max($chartData) ?: 1;
+$width = 300; $height = 150;
+$stepX = $width / max(count($chartData) - 1, 1);
+$points = [];
+foreach ($chartData as $i => $value) {
+    $points[] = ($i * $stepX) . "," . ($height - ($value / $max * $height));
+}
+$pointsString = implode(" ", $points);
+$yLabels = [];
+for ($i = 5; $i >= 0; $i--) { $yLabels[] = round(($max / 5) * $i); }
+
+$locationQuery = $conn->query("SELECT location, COUNT(*) as total FROM reports GROUP BY location ORDER BY total DESC LIMIT 5");
+$locationStats = [];
+while ($row = $locationQuery->fetch_assoc()) {
+    $shortName = explode(",", $row['location'])[0];
+    $locationStats[$shortName] = $row['total'];
+}
+$locationMax = max(array_values($locationStats) ?: [1]);
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,34 +102,265 @@
 </head>
 
 <body>
-    <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
-        <button class="hamburger" id="hamburger-menu">
-            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-        </button>
-        <nav class="nav-links" id="nav-links">
-            <a href="admindashboard.php" class="nav-tab active">Overview</a>
-            <a href="admin_reports.php" class="nav-tab">Reports DB</a>
-            <a href="admin_users.php" class="nav-tab">User Control</a>
-            <a href="admin_statistics.php" class="nav-tab">Statistics</a>
-            <a href="admin_systemlogs.php" class="nav-tab">System Logs</a>
-            <a href="logout.php" class="button logout-button">Logout</a>
-        </nav>
-    </header>
-    <section class="dashboard-section">
-        <div class="overlay"></div>
-        <div class="dashboard-container admin-layout">
-            <div id="statistics" class="admin-content-section active">
-                <div>
-                    <h2>Statistics</h2>
-                    <p>Total Reports: 1,234</p>
-                    <p>Resolved Reports: 987</p>
-                    <p>Pending Reports: 247</p>
+<header class="navbar">
+    <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+    <button class="hamburger" id="hamburger-menu">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+    <nav class="nav-links" id="nav-links">
+        <a href="admindashboard.php" class="nav-tab">Overview</a>
+        <a href="admin_reports.php" class="nav-tab">Reports DB</a>
+        <a href="admin_users.php" class="nav-tab">User Control</a>
+        <a href="admin_statistics.php" class="nav-tab active">Statistics</a>
+        <a href="admin_systemlogs.php" class="nav-tab">System Logs</a>
+        <a href="logout.php" class="button logout-button">Logout</a>
+    </nav>
+</header>
+
+<section class="dashboard-section">
+    <div class="overlay"></div>
+    <div class="dashboard-container admin-layout">
+        <div class="admin-content-section active">
+
+            <h1 class="admin-title">Statistics &amp; Analysis</h1>
+            <h2 class="admin-subtitle">Explore detailed insights about waste reports and system activity.</h2>
+
+            <!-- Summary Cards: Reports -->
+            <div class="stats-summary-block">
+                <div class="stats-summary-label">Summary Reports for <span class="stats-period-badge">This Week</span></div>
+                <div class="admin-overview-grid">
+                    <div class="stat-card">
+                        <div class="stat-header header-green"><img src="assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
+                        <div class="stat-body">
+                            <h3><?= $totalReports ?></h3>
+                            <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
+                                <?= $change >= 0 ? '↑' : '↓' ?> <?= abs($change) ?>% from last week
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header header-red"><img src="assets/apPending.png"><span>Pending</span></div>
+                        <div class="stat-body"><h3><?= $pendingReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header header-orange"><img src="assets/apInProgress.png"><span>In progress</span></div>
+                        <div class="stat-body"><h3><?= $progressReports ?></h3><span class="stat-change negative">↓ 10% from last week</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header header-green-soft"><img src="assets/apResolved.png"><span>Resolved</span></div>
+                        <div class="stat-body"><h3><?= $resolvedReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
+                    </div>
                 </div>
             </div>
-        
+
+            <!-- Two donut charts row -->
+            <div class="admin-stats-grid">
+                <!-- Reports by Category -->
+                <div class="admin-card">
+                    <div class="card-header-row"><h3>Reports by category</h3></div>
+                    <div class="category-chart-wrapper">
+                        <div class="donut-chart" style="background: conic-gradient(<?= $gradient ?>)">
+                            <div class="donut-center"><strong><?= $totalReports ?></strong><span>total</span></div>
+                        </div>
+                        <div class="category-legend">
+                            <?php foreach ($categoryStats as $name => $count): ?>
+                                <div class="legend-item">
+                                    <img src="assets/pin<?= strtolower($name) ?>.png">
+                                    <span><?= $name ?></span>
+                                    <span class="legend-value"><?= $categoryPercentages[$name] ?>% (<?= $count ?> reports)</span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Over Time -->
+                <div class="admin-card">
+                    <div class="card-header-row">
+                        <h3>Reports Over Time</h3>
+                        <select id="chartMode" class="small-select">
+                            <option value="daily" <?= $mode === 'daily' ? 'selected' : '' ?>>Daily</option>
+                            <option value="weekly" <?= $mode === 'weekly' ? 'selected' : '' ?>>Weekly</option>
+                        </select>
+                    </div>
+                    <div class="line-chart-wrapper">
+                        <div class="chart-axes">
+                            <div class="y-axis">
+                                <?php foreach ($yLabels as $y): ?><span><?= $y ?></span><?php endforeach; ?>
+                            </div>
+                            <div class="graph-area">
+                                <svg viewBox="0 0 300 150" class="line-svg">
+                                    <polyline fill="none" stroke="#1b641b" stroke-width="3" points="<?= $pointsString ?>"/>
+                                    <?php foreach ($chartData as $i => $value):
+                                        $cx = $i * $stepX;
+                                        $cy = 150 - ($value / $max * 150);
+                                    ?>
+                                        <circle cx="<?= $cx ?>" cy="<?= $cy ?>" r="4" class="chart-dot"
+                                            data-value="<?= $value ?>" data-label="<?= $labels[$i] ?>"/>
+                                    <?php endforeach; ?>
+                                </svg>
+                                <div id="chartTooltip" class="chart-tooltip"></div>
+                            </div>
+                        </div>
+                        <div class="x-axis">
+                            <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports by Status -->
+                <div class="admin-card">
+                    <div class="card-header-row"><h3>Reports by Status</h3></div>
+                    <div class="category-chart-wrapper">
+                        <div class="donut-chart" style="background: conic-gradient(<?= $statusGradient ?>)">
+                            <div class="donut-center"><strong><?= $totalReports ?></strong><span>total</span></div>
+                        </div>
+                        <div class="category-legend">
+                            <?php foreach ($statusStats as $status => $count): ?>
+                                <div class="legend-item">
+                                    <span class="status-dot" style="background:<?= $statusColors[$status] ?? '#ccc' ?>"></span>
+                                    <span><?= ucfirst($status) ?></span>
+                                    <span class="legend-value"><?= $totalReports > 0 ? round(($count/$totalReports)*100) : 0 ?>% (<?= $count ?> reports)</span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Trends (placeholder line chart reusing same data) -->
+                <div class="admin-card">
+                    <div class="card-header-row">
+                        <h3>Category Trends</h3>
+                        <span class="stats-period-badge">Daily</span>
+                    </div>
+                    <div class="line-chart-wrapper">
+                        <div class="chart-axes">
+                            <div class="y-axis">
+                                <?php foreach ($yLabels as $y): ?><span><?= $y ?></span><?php endforeach; ?>
+                            </div>
+                            <div class="graph-area">
+                                <svg viewBox="0 0 300 150" class="line-svg">
+                                    <polyline fill="none" stroke="#1b641b" stroke-width="2" points="<?= $pointsString ?>"/>
+                                    <polyline fill="none" stroke="#eb3e31" stroke-width="2"
+                                        points="<?php
+                                            // Offset the second line slightly to simulate category trend
+                                            $pts2 = [];
+                                            foreach ($chartData as $i => $v) {
+                                                $v2 = max(0, $v - 1);
+                                                $pts2[] = ($i * $stepX) . "," . ($height - ($v2 / $max * $height));
+                                            }
+                                            echo implode(" ", $pts2);
+                                        ?>"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="x-axis">
+                            <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports by Location bar chart -->
+            <div class="admin-card stats-full-card">
+                <div class="card-header-row"><h3>Reports By Location</h3></div>
+                <div class="location-bar-chart">
+                    <?php foreach ($locationStats as $name => $count): ?>
+                        <div class="location-bar-row">
+                            <span class="location-label"><?= htmlspecialchars($name) ?></span>
+                            <div class="location-bar-track">
+                                <div class="location-bar-fill" style="width: <?= round(($count / $locationMax) * 100) ?>%"></div>
+                            </div>
+                            <span class="location-count"><?= $count ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- Generate Report -->
+            <form method="GET" action="generate_report.php">
+                <div class="admin-card admin-generate-card">
+                    <div class="generate-left">
+                        <h3>Generate Report</h3>
+                        <p>Export data and analysis</p>
+                        <div class="form-group">
+                            <label>Time Period</label>
+                            <select name="period">
+                                <option value="week">This week</option>
+                                <option value="month">This month</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Format</label>
+                            <div class="format-buttons">
+                                <button type="submit" name="format" value="csv" class="active">CSV</button>
+                                <button type="submit" name="format" value="pdf">PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="generate-middle">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="category">
+                                <option value="all">All</option>
+                                <option value="plastic">Plastic</option>
+                                <option value="glass">Glass</option>
+                                <option value="paper">Paper</option>
+                                <option value="metal">Metal</option>
+                                <option value="household">Household</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status">
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="generate-right">
+                        <button type="submit" class="generate-btn">Generate Report</button>
+                    </div>
+                </div>
+            </form>
+
         </div>
-    </section>
+    </div>
+</section>
+
+<script>
+    document.getElementById("hamburger-menu").addEventListener("click", function() {
+        document.getElementById("nav-links").classList.toggle("active");
+        document.body.classList.toggle("no-scroll");
+    });
+
+    // Chart mode switcher
+    const modeSelect = document.getElementById("chartMode");
+    if (modeSelect) {
+        modeSelect.addEventListener("change", function() {
+            window.location.href = "?mode=" + this.value;
+        });
+    }
+
+    // Tooltip on chart dots
+    const tooltip = document.getElementById("chartTooltip");
+    document.querySelectorAll(".chart-dot").forEach(dot => {
+        dot.addEventListener("mousemove", (e) => {
+            tooltip.innerHTML = dot.dataset.label + ": " + dot.dataset.value + " reports";
+            tooltip.style.display = "block";
+            tooltip.style.left = (e.clientX + 10) + "px";
+            tooltip.style.top = (e.clientY - 30) + "px";
+            tooltip.style.opacity = 1;
+        });
+        dot.addEventListener("mouseleave", () => {
+            tooltip.style.opacity = 0;
+            tooltip.style.display = "none";
+        });
+    });
+</script>
 </body>
+
 
 </html>

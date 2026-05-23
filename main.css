@@ -2721,3 +2721,75 @@ footer {
 .btn-archive:hover {
     background: #5a6268; 
 }
+
+/* === Statistics Page === */
+.stats-summary-block {
+    margin-bottom: 1.5rem;
+}
+.stats-summary-label {
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+}
+.stats-period-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.stats-full-card {
+    margin-top: 1.5rem;
+}
+
+/* Location bar chart */
+.location-bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+.location-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.location-label {
+    width: 120px;
+    font-size: 0.82rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.location-bar-track {
+    flex: 1;
+    background: #e0e0e0;
+    border-radius: 6px;
+    height: 14px;
+}
+.location-bar-fill {
+    height: 100%;
+    background: #2e7d32;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+.location-count {
+    width: 24px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #333;
+    text-align: right;
+}
+
+/* Status dot for status legend */
+.status-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
