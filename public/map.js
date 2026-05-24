@@ -18,11 +18,11 @@ fetch("get_reports.php").then(response => response.json()).then(data => {
     data.forEach(report => {
         let iconUrl = "";
         switch (parseInt(report.category_id)) {
-            case 1: iconUrl = "assets/pinplastic.png"; break;
-            case 2: iconUrl = "assets/pinpaper.png"; break;
-            case 3: iconUrl = "assets/pinglass.png"; break;
-            case 4: iconUrl = "assets/pinmetal.png"; break;
-            case 5: iconUrl = "assets/pinhousehold.png"; break;
+            case 1: iconUrl = "public/assets/pinplastic.png"; break;
+            case 2: iconUrl = "public/assets/pinpaper.png"; break;
+            case 3: iconUrl = "public/assets/pinglass.png"; break;
+            case 4: iconUrl = "public/assets/pinmetal.png"; break;
+            case 5: iconUrl = "public/assets/pinhousehold.png"; break;
         }
 
         let customIcon = L.icon({ iconUrl: iconUrl, iconSize: [30, 40], iconAnchor: [15, 40], className: report.status === "archived" ? "archived-pin" : "" });

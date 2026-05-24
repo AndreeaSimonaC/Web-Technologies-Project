@@ -1,47 +1,7 @@
 <?php
 session_start();
-require_once 'config/db.php';
-$error = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $username = trim($_POST["username"]);
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
-
-    if (empty($username) || empty($email) || empty($password)) {  $error = "All fields are required."; } 
-    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $error = "Invalid email format."; } 
-    elseif (!preg_match("/^[a-zA-Z0-9_]{3,30}$/", $username)) { $error = "Invalid username."; } 
-    elseif (strlen($password) < 8) { $error = "Password must be at least 8 characters."; } 
-    else {  
-        $conn = getDB();
-
-        $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE email = ? AND username = ?");
-        $stmt->bind_param("ss", $email, $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-
-            if (password_verify($password, $user["password"])) {
-                $_SESSION["user_id"] = $user["id"];
-                $_SESSION["username"] = $user["username"];
-                $_SESSION["role"] = $user["role"];
-
-                if ($user["role"] == "admin") { header("Location: admindashboard.php"); } 
-                elseif ($user["role"] == "worker") { header("Location: workerdashboard.php"); } 
-                else { header("Location: userdashboard.php"); }
-                exit();
-            } 
-            else { $error = "Invalid credentials.";  }
-        } 
-        else { $error = "Invalid credentials."; }
-
-        $stmt->close();
-        $conn->close();
-    }
-}
+require_once 'controllers/AuthController.php';
+$error = handleLogin();
 ?>
 <!DOCTYPE html>
 <html lang="en">

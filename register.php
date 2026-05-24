@@ -1,41 +1,6 @@
 <?php
-$error = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $username = trim($_POST["username"]);
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
-
-    if (empty($username) || empty($email) || empty($password)) { $error = "All fields are required."; } 
-    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $error = "Invalid email format."; } 
-    elseif (!preg_match("/^[a-zA-Z0-9_]{3,30}$/", $username)) { $error = "Invalid username.";} 
-    elseif (strlen($password) < 8) { $error = "Password must be at least 8 characters."; } 
-    else {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        $conn = new mysqli("localhost", "root", "", "citywatch");
-        if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
-
-        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $check->bind_param("s", $email);
-        $check->execute();
-        $check->store_result();
-
-        if ($check->num_rows > 0) { $error = "Email already registered.";} 
-        else {
-            $stmt = $conn->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'user')");
-            $stmt->bind_param("sss", $username, $email, $hashedPassword);
-
-            if ($stmt->execute()) { header("Location: login.php"); exit();} 
-            else { $error = "Something went wrong!"; }
-
-            $stmt->close();
-        }
-        $check->close();
-        $conn->close();
-    }
-}
+require_once 'controllers/AuthController.php';
+$error = handleRegister();
 ?>
 <!DOCTYPE html>
 <html lang="en">
