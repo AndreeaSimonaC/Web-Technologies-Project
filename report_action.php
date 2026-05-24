@@ -1,6 +1,6 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "citywatch");
-
+require_once 'config/db.php';
+$conn = getDB();
 $id = $_POST['id'] ?? null;
 $action = $_POST['action'] ?? null;
 

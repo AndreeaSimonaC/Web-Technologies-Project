@@ -1,6 +1,6 @@
 <?php
-    $conn = new mysqli("localhost", "root", "", "citywatch");
-
+    require_once 'config/db.php';
+    $conn = getDB();
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
     $id = $_POST['id'] ?? null;

@@ -1,6 +1,6 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "citywatch");
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+require_once 'config/db.php';
+$conn = getDB();
 $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM reports r JOIN categories c ON r.category_id = c.id JOIN users u ON r.user_id = u.id WHERE r.status != 'archived'");
 ?>
 <!DOCTYPE html>

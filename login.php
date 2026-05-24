@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require_once 'config/db.php';
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -13,9 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $error = "Invalid email format."; } 
     elseif (!preg_match("/^[a-zA-Z0-9_]{3,30}$/", $username)) { $error = "Invalid username."; } 
     elseif (strlen($password) < 8) { $error = "Password must be at least 8 characters."; } 
-    else {
-        $conn = new mysqli("localhost", "root", "", "citywatch");
-        if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+    else {  
+        $conn = getDB();
 
         $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE email = ? AND username = ?");
         $stmt->bind_param("ss", $email, $username);

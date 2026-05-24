@@ -2,8 +2,8 @@
 session_start();
 if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
 
-$conn = new mysqli("localhost", "root", "", "citywatch");
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+require_once 'config/db.php';
+$conn = getDB();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION["user_id"];

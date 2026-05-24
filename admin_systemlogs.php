@@ -1,3 +1,7 @@
+<?php
+    require_once 'config/db.php';
+    $conn = getDB();
+?>
 <!DOCTYPE html>
 <html lang="en">
 

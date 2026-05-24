@@ -1,6 +1,6 @@
 <?php
-    $conn = new mysqli("localhost", "root", "", "citywatch");
-    if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+    require_once 'config/db.php';
+    $conn = getDB();
 
     $period = $_GET['period'] ?? 'week';
     $category = $_GET['category'] ?? 'all';

@@ -4,8 +4,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php"); exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "citywatch");
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+require_once 'config/db.php';
+$conn = getDB();
 
 $mode = $_GET['mode'] ?? 'daily';
 
