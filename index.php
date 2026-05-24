@@ -10,7 +10,7 @@ $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM r
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -20,7 +20,7 @@ $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM r
 <body>
     <!--Header section: logo and nav bar-->
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="CityWatchLogo"></div>
         
         <button class="hamburger" id="hamburger-menu">
         	<span class="bar"></span>
@@ -57,11 +57,11 @@ $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM r
             </div>
             <div class="map-footer">
                 <div class="legend">
-                    <div class="legend-item"><img src="assets/pinpaper.png" alt="paper pin"> Paper</div>
-                    <div class="legend-item"><img src="assets/pinplastic.png" alt="plastic pin"> Plastic</div>
-                    <div class="legend-item"><img src="assets/pinmetal.png" alt="metal pin"> Metal</div>
-                    <div class="legend-item"><img src="assets/pinglass.png" alt="glass pin"> Glass</div>
-                    <div class="legend-item"><img src="assets/pinhousehold.png" alt="household pin"> Household</div>
+                    <div class="legend-item"><img src="public/assets/pinpaper.png" alt="paper pin"> Paper</div>
+                    <div class="legend-item"><img src="public/assets/pinplastic.png" alt="plastic pin"> Plastic</div>
+                    <div class="legend-item"><img src="public/assets/pinmetal.png" alt="metal pin"> Metal</div>
+                    <div class="legend-item"><img src="public/assets/pinglass.png" alt="glass pin"> Glass</div>
+                    <div class="legend-item"><img src="public/assets/pinhousehold.png" alt="household pin"> Household</div>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@ $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM r
                 <a href="register.php" class="cta-button">Create an account</a>
                 <p class="cta-text">Report waste: Easily report waste-issues areas by location.<br>Track issues: See reports on the map in real time.<br>Clean city: Help improve your community</p>
             </div>
-            <div class="bottom-right"><img src="assets/picturelandingpage.png" alt="recycle bins"></div>
+            <div class="bottom-right"><img src="public/assets/picturelandingpage.png" alt="recycle bins"></div>
         </div>
         <div class="bottom-checklist">
             <span>✔ Create an account</span>
@@ -120,19 +120,19 @@ $mapQuery = $conn->query("SELECT r.*, c.name AS category_name, u.username FROM r
                 $icon = "";
                 switch ($row['category_id']) {
                     case 1:
-                        $icon = "assets/pinplastic.png";
+                        $icon = "public/assets/pinplastic.png";
                         break;
                     case 2:
-                        $icon = "assets/pinpaper.png";
+                        $icon = "public/assets/pinpaper.png";
                         break;
                     case 3:
-                        $icon = "assets/pinglass.png";
+                        $icon = "public/assets/pinglass.png";
                         break;
                     case 4:
-                        $icon = "assets/pinmetal.png";
+                        $icon = "public/assets/pinmetal.png";
                         break;
                     case 5:
-                        $icon = "assets/pinhousehold.png";
+                        $icon = "public/assets/pinhousehold.png";
                         break;
                 }
                 ?>

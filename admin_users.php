@@ -111,7 +111,7 @@ $result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -119,7 +119,7 @@ $result = $stmt->get_result();
 
 <body>
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -142,7 +142,7 @@ $result = $stmt->get_result();
                 <div class="admin-overview-grid">
                     <div class="stat-card">
                         <div class="stat-header header-green">
-                            <img src="assets/adminUsersTotalIcon.png">
+                            <img src="public/assets/adminUsersTotalIcon.png">
                             <span>Total Users</span>
                         </div>
                         <div class="stat-body">
@@ -152,7 +152,7 @@ $result = $stmt->get_result();
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-red">
-                            <img src="assets/adminUsersCitizens.png">
+                            <img src="public/assets/adminUsersCitizens.png">
                             <span>Citizens</span>
                         </div>
                         <div class="stat-body">
@@ -162,7 +162,7 @@ $result = $stmt->get_result();
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-orange">
-                            <img src="assets/adminUsersAuthorized.png">
+                            <img src="public/assets/adminUsersAuthorized.png">
                             <span>Authorized</span>
                         </div>
                         <div class="stat-body">
@@ -172,7 +172,7 @@ $result = $stmt->get_result();
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-green-soft">
-                            <img src="assets/adminUsersAdmins.png">
+                            <img src="public/assets/adminUsersAdmins.png">
                             <span>Admins</span>
                         </div>
                         <div class="stat-body">
@@ -275,18 +275,18 @@ $result = $stmt->get_result();
                                                     data-joined="<?= date("d M Y H:i", strtotime($user['created_at'])) ?>"
                                                     data-status="<?= $user['status'] ?>"
                                                     data-reports="<?= $user['reports_count'] ?>">
-                                                    <img src="assets/adminReportsDetails.png">
+                                                    <img src="public/assets/adminReportsDetails.png">
                                                 </button>
                                                 <button class="icon-btn edit-btn"
                                                     data-id="<?= $user['id'] ?>"
                                                     data-name="<?= htmlspecialchars($user['username']) ?>"
                                                     data-role="<?= $user['role'] ?>"
                                                     data-email="<?= htmlspecialchars($user['email']) ?>">
-                                                    <img src="assets/adminReportsEdit.png">
+                                                    <img src="public/assets/adminReportsEdit.png">
                                                 </button>
                                                 <button class="icon-btn danger delete-btn"
                                                     data-id="<?= $user['id'] ?>">
-                                                    <img src="assets/adminReportsDelete.png">
+                                                    <img src="public/assets/adminReportsDelete.png">
                                                 </button>
                                             </td>
                                         </tr>
@@ -310,7 +310,7 @@ $result = $stmt->get_result();
                         </div>
 
                         <div class="details-body">
-                            <img src="assets/iconuser.png" class="avatar">
+                            <img src="public/assets/iconuser.png" class="avatar">
                             <h2 id="detailName">Select a user</h2>
 
                             <div class="details-info">

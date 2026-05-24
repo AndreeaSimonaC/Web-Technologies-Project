@@ -36,13 +36,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Worker Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body class="worker-page">
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -65,7 +65,7 @@
                 <div class="worker-stats-grid">
                     <div class="impact-card worker-card-pending">
                         <div class="card-header worker-header-pending">
-                            <img src="assets/apPending.png" class="header-icon">
+                            <img src="public/assets/apPending.png" class="header-icon">
                             <span>Pending Assignments</span>
                         </div>
                         <div class="worker-stat-line"><h3 class="impact-number worker-text-pending"><?= $pendingTasks ?></h3></div>
@@ -73,7 +73,7 @@
 
                     <div class="impact-card worker-card-warning">
                         <div class="card-header worker-header-warning">
-                            <img src="assets/apInProgress.png" class="header-icon">
+                            <img src="public/assets/apInProgress.png" class="header-icon">
                             <span>In Progress</span>
                         </div>
                         <div class="worker-stat-line"><h3 class="impact-number worker-text-warning"><?= $myInProgress ?></h3></div>
@@ -81,7 +81,7 @@
 
                     <div class="impact-card worker-card-success">
                         <div class="card-header worker-header-success">
-                            <img src="assets/apResolved.png" class="header-icon">
+                            <img src="public/assets/apResolved.png" class="header-icon">
                             <span>Resolved</span>
                         </div>
                         <div class="worker-stat-line"><h3 class="impact-number worker-text-success"><?= $totalResolved ?></h3></div>
@@ -119,19 +119,19 @@
                             $icon = "";
                             switch ($row['category_id']) {
                                 case 1:
-                                    $icon = "assets/iconplastic.png";
+                                    $icon = "public/assets/iconplastic.png";
                                     break;
                                 case 2:
-                                    $icon = "assets/iconpaper.png";
+                                    $icon = "public/assets/iconpaper.png";
                                     break;
                                 case 3:
-                                    $icon = "assets/iconglass.png";
+                                    $icon = "public/assets/iconglass.png";
                                     break;
                                 case 4:
-                                    $icon = "assets/iconmetal.png";
+                                    $icon = "public/assets/iconmetal.png";
                                     break;
                                 case 5:
-                                    $icon = "assets/iconhousehold.png";
+                                    $icon = "public/assets/iconhousehold.png";
                                     break;
                             }
 
@@ -187,11 +187,11 @@
                     </div>
                     <div class="map-footer">
                         <div class="legend">
-                            <div class="legend-item"><img src="assets/pinpaper.png"> Paper</div>
-                            <div class="legend-item"><img src="assets/pinplastic.png"> Plastic</div>
-                            <div class="legend-item"><img src="assets/pinmetal.png"> Metal</div>
-                            <div class="legend-item"><img src="assets/pinglass.png"> Glass</div>
-                            <div class="legend-item"><img src="assets/pinhousehold.png"> Household</div>
+                            <div class="legend-item"><img src="public/assets/pinpaper.png"> Paper</div>
+                            <div class="legend-item"><img src="public/assets/pinplastic.png"> Plastic</div>
+                            <div class="legend-item"><img src="public/assets/pinmetal.png"> Metal</div>
+                            <div class="legend-item"><img src="public/assets/pinglass.png"> Glass</div>
+                            <div class="legend-item"><img src="public/assets/pinhousehold.png"> Household</div>
                         </div>
                     </div>
                     <div class="report-overlay" id="reportOverlay" style="display:none;">
@@ -303,7 +303,7 @@
                 });
         };
     </script>
-    <script src="map.js"></script>
+    <script src="public/map.js"></script>
 </body>
 
 </html>

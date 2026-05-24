@@ -118,13 +118,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -146,7 +146,7 @@
                 <div class="admin-overview-grid">
                     <div class="stat-card">
                         <div class="stat-header header-green">
-                            <img src="assets/adminReportsTotalIcon.png">
+                            <img src="public/assets/adminReportsTotalIcon.png">
                             <span>Total Reports</span>
                         </div>
                         <div class="stat-body">
@@ -158,7 +158,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-red">
-                            <img src="assets/apPending.png">
+                            <img src="public/assets/apPending.png">
                             <span>Pending Reports</span>
                         </div>
                         <div class="stat-body">
@@ -170,7 +170,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-orange">
-                            <img src="assets/apInProgress.png">
+                            <img src="public/assets/apInProgress.png">
                             <span>In Progress</span>
                         </div>
                         <div class="stat-body">
@@ -182,7 +182,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-green-soft">
-                            <img src="assets/apResolved.png">
+                            <img src="public/assets/apResolved.png">
                             <span>Resolved Reports</span>
                         </div>
                         <div class="stat-body">
@@ -203,11 +203,11 @@
                             </div>
                             <div class="map-footer">
                                 <div class="legend">
-                                    <div class="legend-item"><img src="assets/pinpaper.png"> Paper</div>
-                                    <div class="legend-item"><img src="assets/pinplastic.png"> Plastic</div>
-                                    <div class="legend-item"><img src="assets/pinmetal.png"> Metal</div>
-                                    <div class="legend-item"><img src="assets/pinglass.png"> Glass</div>
-                                    <div class="legend-item"><img src="assets/pinhousehold.png"> Household</div>
+                                    <div class="legend-item"><img src="public/assets/pinpaper.png"> Paper</div>
+                                    <div class="legend-item"><img src="public/assets/pinplastic.png"> Plastic</div>
+                                    <div class="legend-item"><img src="public/assets/pinmetal.png"> Metal</div>
+                                    <div class="legend-item"><img src="public/assets/pinglass.png"> Glass</div>
+                                    <div class="legend-item"><img src="public/assets/pinhousehold.png"> Household</div>
                                 </div>
                             </div>
                         </div>
@@ -243,11 +243,11 @@
                                         $index++;
                                         $icon = "";
                                         switch ($row['category_id']) { 
-                                            case 1: $icon = "assets/iconplastic.png"; break;
-                                            case 2: $icon = "assets/iconpaper.png"; break;
-                                            case 3: $icon = "assets/iconglass.png"; break;
-                                            case 4: $icon = "assets/iconmetal.png"; break;
-                                            case 5: $icon = "assets/iconhousehold.png"; break;
+                                            case 1: $icon = "public/assets/iconplastic.png"; break;
+                                            case 2: $icon = "public/assets/iconpaper.png"; break;
+                                            case 3: $icon = "public/assets/iconglass.png"; break;
+                                            case 4: $icon = "public/assets/iconmetal.png"; break;
+                                            case 5: $icon = "public/assets/iconhousehold.png"; break;
                                         }
                                         $statusClass = "";
                                         if ($row['status'] == "pending") $statusClass = "status-pending";
@@ -401,6 +401,6 @@
             if (modeSelect) { modeSelect.addEventListener("change", function () { const mode = this.value;  window.location.href = "?mode=" + mode; }); }
         });
     </script>
-    <script src="map.js"></script>
+    <script src="public/map.js"></script>
 </body>
 </html>

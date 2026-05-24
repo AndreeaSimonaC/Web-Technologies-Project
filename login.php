@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch Login</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
 </head>
 
 <body class="login-page">
@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <span>Home</span>
     </a>
     <div class="login-left">
-        <img src="assets/logobig.png" class="login-logo" alt="logo">
+        <img src="public/assets/logobig.png" class="login-logo" alt="logo">
         <h1>Help us make<br>the city clean.</h1>
     </div>
     <div class="login-right">
@@ -75,19 +75,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form class="login-form" method="POST" action="login.php">
             <label>Username</label>
             <div class="input-group">
-                <img src="assets/iconuser.png" alt="user icon">
+                <img src="public/assets/iconuser.png" alt="user icon">
                 <input type="text" name="username" required>
             </div>
             <label>Email</label>
             <div class="input-group">
-                <img src="assets/iconemail.png" alt="email icon">
+                <img src="public/assets/iconemail.png" alt="email icon">
                 <input type="email" name="email" required>
             </div>
             <label>Password</label>
             <div class="input-group">
-                <img src="assets/iconpassword.png" alt="password icon">
+                <img src="public/assets/iconpassword.png" alt="password icon">
                 <input type="password" name="password" id="passwordInput" required>
-                <img src="assets/iconshowpass.png" alt="toggle password" id="togglePassword" style="cursor: pointer;">
+                <img src="public/assets/iconshowpass.png" alt="toggle password" id="togglePassword" style="cursor: pointer;">
             </div>
             <button type="submit" class="login-button-submit">Login</button>
             <p class="link-to-signup">Don't have an account?<a href="register.php">Sign Up</a></p>
@@ -100,10 +100,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             icon.addEventListener("click", function() {
                 if (passwordInput.type === "password") {
                     passwordInput.type = "text";
-                    icon.src = "assets/iconhidepass.png";
+                    icon.src = "public/assets/iconhidepass.png";
                 } else {
                     passwordInput.type = "password";
-                    icon.src = "assets/iconshowpass.png";
+                    icon.src = "public/assets/iconshowpass.png";
                 }
             });
         });

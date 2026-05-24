@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>

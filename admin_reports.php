@@ -133,14 +133,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -162,7 +162,7 @@
                 <div class="admin-overview-grid">
                     <div class="stat-card">
                         <div class="stat-header header-green">
-                            <img src="assets/adminReportsTotalIcon.png">
+                            <img src="public/assets/adminReportsTotalIcon.png">
                             <span>Total Reports</span>
                         </div>
                         <div class="stat-body">
@@ -174,7 +174,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-red">
-                            <img src="assets/apPending.png">
+                            <img src="public/assets/apPending.png">
                             <span>Pending</span>
                         </div>
                         <div class="stat-body">
@@ -186,7 +186,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-orange">
-                            <img src="assets/apInProgress.png">
+                            <img src="public/assets/apInProgress.png">
                             <span>In Progress</span>
                         </div>
                         <div class="stat-body">
@@ -198,7 +198,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-green-soft">
-                            <img src="assets/apResolved.png">
+                            <img src="public/assets/apResolved.png">
                             <span>Resolved</span>
                         </div>
                         <div class="stat-body">
@@ -305,15 +305,15 @@
                                                     data-user="<?= htmlspecialchars($report['reported_by'] ?? 'Unknown') ?>"
                                                     data-status="<?= $report['status'] ?>"
                                                     data-description="<?= htmlspecialchars($report['description']) ?>">
-                                                    <img src="assets/adminReportsDetails.png">
+                                                    <img src="public/assets/adminReportsDetails.png">
                                                 </button>
                                                 <button class="icon-btn edit-btn"
                                                     data-id="<?= $report['id'] ?>">
-                                                    <img src="assets/adminReportsEdit.png">
+                                                    <img src="public/assets/adminReportsEdit.png">
                                                 </button>
                                                 <button class="icon-btn danger delete-btn"
                                                     data-id="<?= $report['id'] ?>">
-                                                    <img src="assets/adminReportsDelete.png">
+                                                    <img src="public/assets/adminReportsDelete.png">
                                                 </button>
                                             </td>
                                         </tr>
@@ -335,7 +335,7 @@
                         </div>
 
                         <div class="details-body">
-                            <img src="assets/iconhousehold.png" class="avatar" id="detailIcon">
+                            <img src="public/assets/iconhousehold.png" class="avatar" id="detailIcon">
                             <h2 id="detailName">Select a report</h2>
 
                             <div class="details-info">
@@ -409,14 +409,14 @@
 
                 const icon = document.getElementById("detailIcon");
                 const categoryMap = {
-                    "plastic": "assets/iconplastic.png",
-                    "paper": "assets/iconpaper.png",
-                    "glass": "assets/iconglass.png",
-                    "metal": "assets/iconmetal.png",
-                    "household": "assets/iconhousehold.png"
+                    "plastic": "public/assets/iconplastic.png",
+                    "paper": "public/assets/iconpaper.png",
+                    "glass": "public/assets/iconglass.png",
+                    "metal": "public/assets/iconmetal.png",
+                    "household": "public/assets/iconhousehold.png"
                 };
 
-                icon.src = categoryMap[btn.dataset.category.toLowerCase()] || "assets/iconhousehold.png";
+                icon.src = categoryMap[btn.dataset.category.toLowerCase()] || "public/assets/iconhousehold.png";
 
                 document.getElementById("detailName").innerText = btn.dataset.category;
                 document.getElementById("detailCategory").innerText = btn.dataset.category;

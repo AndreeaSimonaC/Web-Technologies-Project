@@ -44,14 +44,14 @@ $stars = $totalResolved * 10;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch User Dashboard</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
    <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="CityWatchLogo"></div>
         
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span>
@@ -65,7 +65,7 @@ $stars = $totalResolved * 10;
             <a href="#reports-section">My Reports</a>
         </nav>
         <div class="nav-right">
-            <a href="logout.php" class="button logout-button"><img src="assets/logouticon.png" alt="logout icon">Logout</a>
+            <a href="logout.php" class="button logout-button"><img src="public/assets/logouticon.png" alt="logout icon">Logout</a>
         </div>
     </header>
 
@@ -87,11 +87,11 @@ $stars = $totalResolved * 10;
             </div>
             <div class="map-footer">
                 <div class="legend">
-                    <div class="legend-item"><img src="assets/pinpaper.png" alt="paper pin"> Paper</div>
-                    <div class="legend-item"><img src="assets/pinplastic.png" alt="plastic pin"> Plastic</div>
-                    <div class="legend-item"><img src="assets/pinmetal.png" alt="metal pin"> Metal</div>
-                    <div class="legend-item"><img src="assets/pinglass.png" alt="glass pin"> Glass</div>
-                    <div class="legend-item"><img src="assets/pinhousehold.png" alt="household pin"> Household</div>
+                    <div class="legend-item"><img src="public/assets/pinpaper.png" alt="paper pin"> Paper</div>
+                    <div class="legend-item"><img src="public/assets/pinplastic.png" alt="plastic pin"> Plastic</div>
+                    <div class="legend-item"><img src="public/assets/pinmetal.png" alt="metal pin"> Metal</div>
+                    <div class="legend-item"><img src="public/assets/pinglass.png" alt="glass pin"> Glass</div>
+                    <div class="legend-item"><img src="public/assets/pinhousehold.png" alt="household pin"> Household</div>
                 </div>
             </div>
         </div>
@@ -126,11 +126,11 @@ $stars = $totalResolved * 10;
                                     <?php
                                     $icon = "";
                                     switch ($row['category_id']) {
-                                        case 1:  $icon = "assets/iconplastic.png"; break;
-                                        case 2:  $icon = "assets/iconpaper.png"; break;
-                                        case 3: $icon = "assets/iconglass.png"; break;
-                                        case 4: $icon = "assets/iconmetal.png"; break;
-                                        case 5: $icon = "assets/iconhousehold.png"; break;
+                                        case 1:  $icon = "public/assets/iconplastic.png"; break;
+                                        case 2:  $icon = "public/assets/iconpaper.png"; break;
+                                        case 3: $icon = "public/assets/iconglass.png"; break;
+                                        case 4: $icon = "public/assets/iconmetal.png"; break;
+                                        case 5: $icon = "public/assets/iconhousehold.png"; break;
                                     }
                                     ?>
                                     <img src="<?= $icon ?>" class="report-icon">
@@ -159,7 +159,7 @@ $stars = $totalResolved * 10;
                     <h3 class="impact-number"><?= $totalResolved ?> <?= $totalResolved == 1 ? 'area' : 'areas' ?></h3>
                     <p>in the last <strong><?= $timeText ?></strong></p>
                     <div class="impact-visual">
-                        <img src="assets/broom.png" class="broom">
+                        <img src="public/assets/broom.png" class="broom">
                         <div class="thankyou-box">Thank you!</div>
                     </div>
                 </div>
@@ -198,6 +198,6 @@ $stars = $totalResolved * 10;
             });
         });
     </script>
-    <script src="map.js"></script>
+    <script src="public/map.js"></script>
 </body>
 </html>

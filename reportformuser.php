@@ -32,14 +32,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch Submit Report</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
     <header class="navbar">
-        <div class="logo"><img src="assets/logosmall.png" alt="CityWatchLogo"></div>
+        <div class="logo"><img src="public/assets/logosmall.png" alt="CityWatchLogo"></div>
         
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span>
@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <a href="#reports-section">My Reports</a>
         </nav>
         <div class="nav-right">
-            <a href="logout.php" class="button logout-button"><img src="assets/logouticon.png" alt="logout icon">Logout</a>
+            <a href="logout.php" class="button logout-button"><img src="public/assets/logouticon.png" alt="logout icon">Logout</a>
         </div>
     </header>
     <section class="report-section">
@@ -82,11 +82,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div id="map"></div>
                 <div class="report-map-footer">
                     <div class="report-legend">
-                        <div class="report-legend-item"><img src="assets/pinpaper.png" alt="paper pin"> Paper</div>
-                        <div class="report-legend-item"><img src="assets/pinplastic.png" alt="plastic pin"> Plastic</div>
-                        <div class="report-legend-item"><img src="assets/pinmetal.png" alt="metal pin"> Metal</div>
-                        <div class="report-legend-item"><img src="assets/pinglass.png" alt="glass pin"> Glass</div>
-                        <div class="report-legend-item"><img src="assets/pinhousehold.png" alt="household pin"> Household</div>
+                        <div class="report-legend-item"><img src="public/assets/pinpaper.png" alt="paper pin"> Paper</div>
+                        <div class="report-legend-item"><img src="public/assets/pinplastic.png" alt="plastic pin"> Plastic</div>
+                        <div class="report-legend-item"><img src="public/assets/pinmetal.png" alt="metal pin"> Metal</div>
+                        <div class="report-legend-item"><img src="public/assets/pinglass.png" alt="glass pin"> Glass</div>
+                        <div class="report-legend-item"><img src="public/assets/pinhousehold.png" alt="household pin"> Household</div>
                     </div>
                 </div>
                 <button id="locateButton" class="locate-button">Locate me</button>
@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         <?php endif; ?>
     </section>
-    <script src="map.js"></script>
+    <script src="public/map.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let marker;

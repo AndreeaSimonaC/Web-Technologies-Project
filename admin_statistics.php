@@ -96,14 +96,14 @@ $locationMax = max(array_values($locationStats) ?: [1]);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Command Center - CityWatch</title>
     <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
+    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
 <header class="navbar">
-    <div class="logo"><img src="assets/logosmall.png" alt="Logo"></div>
+    <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
     <button class="hamburger" id="hamburger-menu">
         <span class="bar"></span><span class="bar"></span><span class="bar"></span>
     </button>
@@ -130,7 +130,7 @@ $locationMax = max(array_values($locationStats) ?: [1]);
                 <div class="stats-summary-label">Summary Reports for <span class="stats-period-badge">This Week</span></div>
                 <div class="admin-overview-grid">
                     <div class="stat-card">
-                        <div class="stat-header header-green"><img src="assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
+                        <div class="stat-header header-green"><img src="public/assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
                         <div class="stat-body">
                             <h3><?= $totalReports ?></h3>
                             <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
@@ -139,15 +139,15 @@ $locationMax = max(array_values($locationStats) ?: [1]);
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-red"><img src="assets/apPending.png"><span>Pending</span></div>
+                        <div class="stat-header header-red"><img src="public/assets/apPending.png"><span>Pending</span></div>
                         <div class="stat-body"><h3><?= $pendingReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-orange"><img src="assets/apInProgress.png"><span>In progress</span></div>
+                        <div class="stat-header header-orange"><img src="public/assets/apInProgress.png"><span>In progress</span></div>
                         <div class="stat-body"><h3><?= $progressReports ?></h3><span class="stat-change negative">↓ 10% from last week</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-green-soft"><img src="assets/apResolved.png"><span>Resolved</span></div>
+                        <div class="stat-header header-green-soft"><img src="public/assets/apResolved.png"><span>Resolved</span></div>
                         <div class="stat-body"><h3><?= $resolvedReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
                     </div>
                 </div>
@@ -165,7 +165,7 @@ $locationMax = max(array_values($locationStats) ?: [1]);
                         <div class="category-legend">
                             <?php foreach ($categoryStats as $name => $count): ?>
                                 <div class="legend-item">
-                                    <img src="assets/pin<?= strtolower($name) ?>.png">
+                                    <img src="public/assets/pin<?= strtolower($name) ?>.png">
                                     <span><?= $name ?></span>
                                     <span class="legend-value"><?= $categoryPercentages[$name] ?>% (<?= $count ?> reports)</span>
                                 </div>
