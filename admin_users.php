@@ -1,99 +1,66 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php"); exit();
+}
 require_once 'config/db.php';
+require_once 'models/UserModel.php';
+
 $conn = getDB();
 
-$result = $conn->query("SELECT COUNT(*) as total FROM users");
-$row = $result->fetch_assoc();
-$totalUsers = $row['total'];
+$userCounts    = getUserCounts();
+$totalCitizens = $userCounts['users'];
+$totalWorkers  = $userCounts['workers'];
+$totalAdmins   = $userCounts['admins'];
 
-$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='user'");
-$row = $result->fetch_assoc();
-$totalCitizens = $row['total'];
+$thisWeekUsers = $conn->query("SELECT COUNT(*) as t FROM users WHERE created_at >= NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
+$lastWeekUsers = $conn->query("SELECT COUNT(*) as t FROM users WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
+$userChange    = $lastWeekUsers > 0 ? round((($thisWeekUsers - $lastWeekUsers) / $lastWeekUsers) * 100) : 0;
 
-$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='worker'");
-$row = $result->fetch_assoc();
-$totalWorkers = $row['total'];
-
-$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE role='admin'");
-$row = $result->fetch_assoc();
-$totalAdmins = $row['total'];
-
-$result = $conn->query("SELECT COUNT(*) as total FROM users WHERE created_at >= NOW() - INTERVAL 7 DAY");
-$row = $result->fetch_assoc();
-$thisWeekUsers = $row['total'];
-
-$result = $conn->query("SELECT COUNT(*) as total  FROM users  WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY");
-$row = $result->fetch_assoc();
-$lastWeekUsers = $row['total'];
-
-$userChange = 0;
-
-if ($lastWeekUsers > 0) {
-    $difference = $thisWeekUsers - $lastWeekUsers;
-    $userChange = ($difference / $lastWeekUsers) * 100;
-}
-$limit = 5;
-$page = max(1, (int)($_GET['page'] ?? 1));
-
+$limit  = 5;
+$page   = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
 
-$where = [];
+$where  = [];
 $params = [];
-$types = "";
+$types  = "";
 
 if (!empty($_GET['search'])) {
-    $search = "%" . $_GET['search'] . "%";
-    $where[] = "(u.username LIKE ? OR u.email LIKE ?)";
-    $params[] = $search;
-    $params[] = $search;
-    $types .= "ss";
+    $search    = "%" . $_GET['search'] . "%";
+    $where[]   = "(u.username LIKE ? OR u.email LIKE ?)";
+    $params[]  = $search;
+    $params[]  = $search;
+    $types    .= "ss";
 }
 if (!empty($_GET['role'])) {
-    $where[] = "u.role = ?";
+    $where[]  = "u.role = ?";
     $params[] = $_GET['role'];
-    $types .= "s";
+    $types   .= "s";
 }
 if (!empty($_GET['status'])) {
-    $where[] = "u.status = ?";
+    $where[]  = "u.status = ?";
     $params[] = $_GET['status'];
-    $types .= "s";
+    $types   .= "s";
 }
 if (!empty($_GET['date_from']) && !empty($_GET['date_to'])) {
-    $where[] = "DATE(u.created_at) BETWEEN ? AND ?";
+    $where[]  = "DATE(u.created_at) BETWEEN ? AND ?";
     $params[] = $_GET['date_from'];
     $params[] = $_GET['date_to'];
-    $types .= "ss";
+    $types   .= "ss";
 }
 
-$countSql = "SELECT COUNT(*) as total FROM users u";
+$whereClause = !empty($where) ? " WHERE " . implode(" AND ", $where) : "";
 
-if (!empty($where)) {
-    $countSql .= " WHERE " . implode(" AND ", $where);
-}
-
-$countStmt = $conn->prepare($countSql);
-
-if (!empty($params)) {
-    $countTypes = $types;
-    $countStmt->bind_param($countTypes, ...$params);
-}
-
+$countStmt = $conn->prepare("SELECT COUNT(*) as total FROM users u" . $whereClause);
+if (!empty($params)) { $countStmt->bind_param($types, ...$params); }
 $countStmt->execute();
-$totalUsers = $countStmt->get_result()->fetch_assoc()['total'];
-$totalPages = ceil($totalUsers / $limit);
+$totalUsers  = $countStmt->get_result()->fetch_assoc()['total'];
+$totalPages  = ceil($totalUsers / $limit);
 
-$sql = "SELECT u.*, COUNT(r.id) as reports_count FROM users u LEFT JOIN reports r ON r.user_id = u.id";
-
-if (!empty($where)) {
-    $sql .= " WHERE " . implode(" AND ", $where);
-}
-
-$sql .= " GROUP BY u.id";
-$sql .= " LIMIT ? OFFSET ?";
-
+$sql    = "SELECT u.*, COUNT(r.id) as reports_count FROM users u LEFT JOIN reports r ON r.user_id = u.id" . $whereClause . " GROUP BY u.id LIMIT ? OFFSET ?";
 $params[] = $limit;
 $params[] = $offset;
-$types .= "ii";
+$types   .= "ii";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param($types, ...$params);

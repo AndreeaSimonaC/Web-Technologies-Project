@@ -2,25 +2,15 @@
     session_start();
     if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
     require_once 'config/db.php';
+    require_once 'models/UserModel.php';
     require_once 'models/ReportModel.php';
 
-    $username = $_SESSION["username"];
-    $user_id = $_SESSION["user_id"];
-    $reports = getReportsByUser($user_id);
+    $username      = $_SESSION["username"];
+    $user_id       = $_SESSION["user_id"];
+    $reports       = getReportsByUser($user_id);
     $totalResolved = getResolvedCountByUser($user_id);
-    $stars = $totalResolved * 10;0
-
-    $conn = getDB();
-    $userStmt = $conn->prepare("SELECT created_at FROM users WHERE id = ?");
-    $userStmt->bind_param("i", $user_id);
-    $userStmt->execute();
-    $userData = $userStmt->get_result()->fetch_assoc();
-    $createdAt = new DateTime($userData['created_at']);
-    $diff = $createdAt->diff(new DateTime());
-    if ($diff->y > 0) { $timeText = $diff->y . " " . ($diff->y == 1 ? "year" : "years"); }
-    elseif ($diff->m > 0) { $timeText = $diff->m . " " . ($diff->m == 1 ? "month" : "months"); }
-    else{ 
-        $timeText = $diff->d . " " . ($diff->d == 1 ? "day" : "days"); }
+    $stars         = $totalResolved * 10;
+    $timeText      = getMemberSince($user_id);
 ?>
 
 <!DOCTYPE html>

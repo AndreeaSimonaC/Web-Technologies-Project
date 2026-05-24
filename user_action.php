@@ -1,5 +1,6 @@
 <?php
     require_once 'config/db.php';
+    require_once 'models/UserModel.php';
     $conn = getDB();
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
@@ -11,35 +12,24 @@
     error_log("Action: $action | ID: $id");
 
     if ($action === "delete") {
-
-        $stmt1 = $conn->prepare("DELETE FROM reports WHERE user_id = ?");
-        $stmt1->bind_param("i", $id);
-        $stmt1->execute();
-
-        $stmt2 = $conn->prepare("DELETE FROM users WHERE id = ?");
-        $stmt2->bind_param("i", $id);
-        $stmt2->execute();
-
-        echo "deleted";
-        exit;
-    }
-if ($action === "edit") {
-    $role = $_POST['role'];
-    $email = $_POST['email'];
-
-    $stmt = $conn->prepare("UPDATE users SET role=?, email=? WHERE id=?");
-    $stmt->bind_param("ssi", $role, $email, $id);
-    $stmt->execute();
+    deleteUser($id);
+    echo "deleted";
+    exit;
 }
-    if ($action === "deactivate") {
 
-        $stmt = $conn->prepare("UPDATE users SET status = 'inactive' WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
+if ($action === "edit") {
+    $role  = $_POST['role'];
+    $email = $_POST['email'];
+    updateUser($id, $role, $email);
+    echo "updated";
+    exit;
+}
 
-        echo "deactivated";
-        exit;
-    }
+if ($action === "deactivate") {
+    deactivateUser($id);
+    echo "deactivated";
+    exit;
+}
 
-    echo "unknown action";
+echo "unknown action";
 ?>
