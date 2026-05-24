@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch Submit Report</title>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="public/main.css">
     <link rel="icon" type="image/x-icon" href="assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
