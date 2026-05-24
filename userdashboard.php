@@ -1,37 +1,26 @@
 <?php
-session_start();
-if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
-$username = $_SESSION["username"];
-require_once 'config/db.php';
-$conn = getDB();
-$user_id = $_SESSION["user_id"];
+    session_start();
+    if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
+    require_once 'config/db.php';
+    require_once 'models/ReportModel.php';
 
-$userStmt = $conn->prepare("SELECT created_at FROM users WHERE id = ?");
-$userStmt->bind_param("i", $user_id);
-$userStmt->execute();
-$userResult = $userStmt->get_result();
-$userData = $userResult->fetch_assoc();
+    $username = $_SESSION["username"];
+    $user_id = $_SESSION["user_id"];
+    $reports = getReportsByUser($user_id);
+    $totalResolved = getResolvedCountByUser($user_id);
+    $stars = $totalResolved * 10;0
 
-$createdAt = new DateTime($userData['created_at']);
-$now = new DateTime();
-$diff = $createdAt->diff($now);
-if ($diff->y > 0) { $timeText = $diff->y . " " . ($diff->y == 1 ? "year" : "years"); } 
-elseif ($diff->m > 0) { $timeText = $diff->m . " " . ($diff->m == 1 ? "month" : "months");} 
-else { $timeText = $diff->d . " " . ($diff->d == 1 ? "day" : "days");}
-
-$reportsStmt = $conn->prepare("SELECT r.id, r.description, r.location, r.status, r.created_at, r.category_id, c.name AS category_name FROM reports r JOIN categories c ON r.category_id = c.id WHERE r.user_id = ? ORDER BY r.created_at DESC");
-$reportsStmt->bind_param("i", $user_id);
-$reportsStmt->execute();
-$reports = $reportsStmt->get_result();
-
-$impactStmt = $conn->prepare("SELECT COUNT(*) as total_resolved FROM reports WHERE user_id = ? AND status = 'resolved'");
-$impactStmt->bind_param("i", $user_id);
-$impactStmt->execute();
-$impactResult = $impactStmt->get_result();
-$impactData = $impactResult->fetch_assoc();
-
-$totalResolved = $impactData['total_resolved'];
-$stars = $totalResolved * 10;
+    $conn = getDB();
+    $userStmt = $conn->prepare("SELECT created_at FROM users WHERE id = ?");
+    $userStmt->bind_param("i", $user_id);
+    $userStmt->execute();
+    $userData = $userStmt->get_result()->fetch_assoc();
+    $createdAt = new DateTime($userData['created_at']);
+    $diff = $createdAt->diff(new DateTime());
+    if ($diff->y > 0) { $timeText = $diff->y . " " . ($diff->y == 1 ? "year" : "years"); }
+    elseif ($diff->m > 0) { $timeText = $diff->m . " " . ($diff->m == 1 ? "month" : "months"); }
+    else{ 
+        $timeText = $diff->d . " " . ($diff->d == 1 ? "day" : "days"); }
 ?>
 
 <!DOCTYPE html>

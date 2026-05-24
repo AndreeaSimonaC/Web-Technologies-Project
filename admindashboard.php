@@ -1,115 +1,49 @@
 <?php
+   
+    session_start();
     require_once 'config/db.php';
-    $conn = getDB();
+    require_once 'models/ReportModel.php';
 
-    $mode = $_GET['mode'] ?? 'daily';
-    $reportsStmt = $conn->prepare("SELECT r.*, c.name AS category_name, u.username FROM reports r JOIN categories c ON r.category_id = c.id JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
+    $mode    = $_GET['mode'] ?? 'daily';
+    $counts  = getReportCounts();
+    $change  = getWeeklyChange();
+    $reports = getAllReports();
 
-    $reportsStmt->execute();
-    $reports = $reportsStmt->get_result();
-
-    $result = $conn->query("SELECT COUNT(*) as total FROM reports");
-    $row = $result->fetch_assoc();
-    $totalReports = $row['total'];
-
-    $result = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status='pending'");
-    $row = $result->fetch_assoc();
-    $pendingReports = $row['total'];
-
-    $result = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status='progress'");
-    $row = $result->fetch_assoc();
-    $progressReports = $row['total'];
-
-    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE status='resolved' OR status='archived'");
-    $row = $result->fetch_assoc();
-    $resolvedReports = $row['total'];
-
-    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE created_at >= NOW() - INTERVAL 7 DAY");
-    $row = $result->fetch_assoc();
-    $thisWeek = $row['total'];
-
-    $result = $conn->query("SELECT COUNT(*) as total  FROM reports  WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY");
-    $row = $result->fetch_assoc();
-    $lastWeek = $row['total'];
-
-    $change = 0;
-
-    if ($lastWeek > 0) {
-        $difference = $thisWeek - $lastWeek;
-        $change = ($difference / $lastWeek) * 100;
-    }
-
-    $categoryStats = [];
-    $categoryQuery = $conn->query("SELECT c.name, COUNT(*) as total FROM reports r JOIN categories c ON r.category_id = c.id GROUP BY c.name");
-    while ($row = $categoryQuery->fetch_assoc()) {
-        $name = ucfirst($row['name']); 
-        $categoryStats[$name] = $row['total'];
-    }
-
+    $categoryStats = getCategoryStats();
+    $totalReports  = $counts['total'];
+    $pendingReports = $counts['pending'];
+    $progressReports = $counts['progress'];
+    $resolvedReports = $counts['resolved'];
     $categoryPercentages = [];
-    foreach ($categoryStats as $name => $count) { $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;}
 
-    $colors = [ "Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+    foreach ($categoryStats as $name => $count) {
+        $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
+    }
 
-    $start = 0;
-    $gradientParts = [];
-
+    $colors = ["Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+    $start = 0; $gradientParts = [];
     foreach ($categoryPercentages as $name => $percent) {
         $end = $start + $percent;
-        $color = $colors[$name] ?? "#ccc";
-        $gradientParts[] = "$color {$start}% {$end}%";
+        $gradientParts[] = ($colors[$name] ?? "#ccc") . " {$start}% {$end}%";
         $start = $end;
     }
     $gradient = implode(", ", $gradientParts);
 
-    $dailyReports = [];
-
-    $query = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
-
-    while ($row = $query->fetch_assoc()) { $dailyReports[$row['day']] = $row['total'];}
-
-    $chartData = [];
-    $labels = [];
-
-    if ($mode === 'weekly') {
-        $weeklyReports = [];
-        $query = $conn->query("SELECT YEARWEEK(created_at, 1) as week, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 8 WEEK GROUP BY week");
-        while ($row = $query->fetch_assoc()) { $weeklyReports[$row['week']] = $row['total']; }
-        for ($i = 7; $i >= 0; $i--) {
-            $week = date("oW", strtotime("-$i week"));
-            $labels[] = "W" . substr($week, -2);
-            $chartData[] = $weeklyReports[$week] ?? 0;
-        }
-    } else {
-        $dailyReports = [];
-        $query = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
-        while ($row = $query->fetch_assoc()) { $dailyReports[$row['day']] = $row['total']; }
-        for ($i = 6; $i >= 0; $i--) {
-            $date = date("Y-m-d", strtotime("-$i days"));
-            $labels[] = date("D", strtotime($date));
-            $chartData[] = $dailyReports[$date] ?? 0;
-        }
-    }
-
-    $max = max($chartData) ?: 1;
+    $chartResult = getReportsOverTime($mode);
+    $chartData   = $chartResult['data'];
+    $labels      = $chartResult['labels'];
+    $max         = max($chartData) ?: 1;
+    $width = 300; $height = 150;
+    $stepX  = $width / max(count($chartData) - 1, 1);
     $points = [];
-
-    $width = 300;
-    $height = 150;
-    $stepX = $width / (count($chartData) - 1);
-
     foreach ($chartData as $i => $value) {
-        $x = $i * $stepX;
-        $y = $height - ($value / $max * $height);
-        $points[] = "$x,$y";
+        $points[] = ($i * $stepX) . "," . ($height - ($value / $max * $height));
     }
     $pointsString = implode(" ", $points);
-
-    $ySteps = 5;
     $yLabels = [];
-
-    for ($i = $ySteps; $i >= 0; $i--) { $yLabels[] = round(($max / $ySteps) * $i); }
+    for ($i = 5; $i >= 0; $i--) { $yLabels[] = round(($max / 5) * $i); }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

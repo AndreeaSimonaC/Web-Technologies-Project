@@ -1,92 +1,58 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php"); exit();
-}
+    session_start();
+    require_once 'config/db.php';
+    require_once 'models/ReportModel.php';
 
-require_once 'config/db.php';
-$conn = getDB();
+    $mode = $_GET['mode'] ?? 'daily';
+    $counts = getReportCounts();
+    $change = getWeeklyChange();
+    $totalReports = $counts['total'];
+    $pendingReports = $counts['pending'];
+    $progressReports = $counts['progress'];
+    $resolvedReports = $counts['resolved'];
 
-$mode = $_GET['mode'] ?? 'daily';
-
-$totalReports    = $conn->query("SELECT COUNT(*) as t FROM reports")->fetch_assoc()['t'];
-$pendingReports  = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='pending'")->fetch_assoc()['t'];
-$progressReports = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='progress'")->fetch_assoc()['t'];
-$resolvedReports = $conn->query("SELECT COUNT(*) as t FROM reports WHERE status='resolved' OR status='archived'")->fetch_assoc()['t'];
-
-$thisWeek = $conn->query("SELECT COUNT(*) as t FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
-$lastWeek = $conn->query("SELECT COUNT(*) as t FROM reports WHERE created_at BETWEEN NOW() - INTERVAL 14 DAY AND NOW() - INTERVAL 7 DAY")->fetch_assoc()['t'];
-$change = $lastWeek > 0 ? round((($thisWeek - $lastWeek) / $lastWeek) * 100) : 0;
-
-$categoryStats = [];
-$catQuery = $conn->query("SELECT c.name, COUNT(*) as total FROM reports r JOIN categories c ON r.category_id = c.id GROUP BY c.name");
-while ($row = $catQuery->fetch_assoc()) {
-    $categoryStats[ucfirst($row['name'])] = $row['total'];
-}
-$categoryPercentages = [];
-foreach ($categoryStats as $name => $count) {
-    $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
-}
-$colors = ["Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
-$start = 0; $gradientParts = [];
-foreach ($categoryPercentages as $name => $percent) {
-    $end = $start + $percent;
-    $gradientParts[] = ($colors[$name] ?? "#ccc") . " {$start}% {$end}%";
-    $start = $end;
-}
-$gradient = implode(", ", $gradientParts);
-
-$statusColors = ["pending" => "#eb3e31", "progress" => "#e7a01b", "resolved" => "#1fc132", "archived" => "#888"];
-$statusStats = [];
-$statusQuery = $conn->query("SELECT status, COUNT(*) as total FROM reports GROUP BY status");
-while ($row = $statusQuery->fetch_assoc()) { $statusStats[$row['status']] = $row['total']; }
-$statusStart = 0; $statusGradientParts = [];
-foreach ($statusStats as $status => $count) {
-    $pct = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
-    $statusEnd = $statusStart + $pct;
-    $statusGradientParts[] = ($statusColors[$status] ?? "#ccc") . " {$statusStart}% {$statusEnd}%";
-    $statusStart = $statusEnd;
-}
-$statusGradient = implode(", ", $statusGradientParts);
-
-$chartData = []; $labels = [];
-if ($mode === 'weekly') {
-    $q = $conn->query("SELECT YEARWEEK(created_at, 1) as week, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 8 WEEK GROUP BY week");
-    $weeklyReports = [];
-    while ($row = $q->fetch_assoc()) { $weeklyReports[$row['week']] = $row['total']; }
-    for ($i = 7; $i >= 0; $i--) {
-        $week = date("oW", strtotime("-$i week"));
-        $labels[] = "W" . substr($week, -2);
-        $chartData[] = $weeklyReports[$week] ?? 0;
+    $categoryStats = getCategoryStats();
+    $categoryPercentages = [];
+    foreach ($categoryStats as $name => $count) {
+        $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
     }
-} else {
-    $q = $conn->query("SELECT DATE(created_at) as day, COUNT(*) as total FROM reports WHERE created_at >= NOW() - INTERVAL 7 DAY GROUP BY DATE(created_at)");
-    $dailyReports = [];
-    while ($row = $q->fetch_assoc()) { $dailyReports[$row['day']] = $row['total']; }
-    for ($i = 6; $i >= 0; $i--) {
-        $date = date("Y-m-d", strtotime("-$i days"));
-        $labels[] = date("D", strtotime($date));
-        $chartData[] = $dailyReports[$date] ?? 0;
-    }
-}
-$max = max($chartData) ?: 1;
-$width = 300; $height = 150;
-$stepX = $width / max(count($chartData) - 1, 1);
-$points = [];
-foreach ($chartData as $i => $value) {
-    $points[] = ($i * $stepX) . "," . ($height - ($value / $max * $height));
-}
-$pointsString = implode(" ", $points);
-$yLabels = [];
-for ($i = 5; $i >= 0; $i--) { $yLabels[] = round(($max / 5) * $i); }
 
-$locationQuery = $conn->query("SELECT location, COUNT(*) as total FROM reports GROUP BY location ORDER BY total DESC LIMIT 5");
-$locationStats = [];
-while ($row = $locationQuery->fetch_assoc()) {
-    $shortName = explode(",", $row['location'])[0];
-    $locationStats[$shortName] = $row['total'];
-}
-$locationMax = max(array_values($locationStats) ?: [1]);
+    $colors = ["Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+    $start = 0; $gradientParts = [];
+    foreach ($categoryPercentages as $name => $percent) {
+        $end = $start + $percent;
+        $gradientParts[] = ($colors[$name] ?? "#ccc") . " {$start}% {$end}%";
+        $start = $end;
+    }
+    $gradient = implode(", ", $gradientParts);
+
+    $statusStats = getStatusStats();
+    $statusColors = ["pending" => "#eb3e31", "progress" => "#e7a01b", "resolved" => "#1fc132", "archived" => "#888"];
+    $statusStart = 0; $statusGradientParts = [];
+    foreach ($statusStats as $status => $count) {
+        $pct = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
+        $statusEnd = $statusStart + $pct;
+        $statusGradientParts[] = ($statusColors[$status] ?? "#ccc") . " {$statusStart}% {$statusEnd}%";
+        $statusStart = $statusEnd;
+    }
+    $statusGradient = implode(", ", $statusGradientParts);
+
+    $chartResult = getReportsOverTime($mode);
+    $chartData = $chartResult['data'];
+    $labels = $chartResult['labels'];
+    $max  = max($chartData) ?: 1;
+    $width = 300; $height = 150;
+    $stepX  = $width / max(count($chartData) - 1, 1);
+    $points = [];
+    foreach ($chartData as $i => $value) {
+        $points[] = ($i * $stepX) . "," . ($height - ($value / $max * $height));
+    }
+    $pointsString = implode(" ", $points);
+    $yLabels = [];
+    for ($i = 5; $i >= 0; $i--) { $yLabels[] = round(($max / 5) * $i); }
+
+    $locationStats = getLocationStats(5);
+    $locationMax= max(array_values($locationStats) ?: [1]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
