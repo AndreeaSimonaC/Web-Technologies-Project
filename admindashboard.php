@@ -335,6 +335,6 @@
             if (modeSelect) { modeSelect.addEventListener("change", function () { const mode = this.value;  window.location.href = "?mode=" + mode; }); }
         });
     </script>
-    <script src="public/map.js"></script>
+   <script src="public/map.js?v=<?= time() ?>"></script>
 </body>
 </html>
