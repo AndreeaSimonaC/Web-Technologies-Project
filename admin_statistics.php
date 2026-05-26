@@ -284,52 +284,61 @@ foreach ($categoryLines as $line) {
             </div>
 
             <form method="GET" action="generate_report.php">
-                <div class="admin-card admin-generate-card">
-                    <div class="generate-left">
-                        <h3>Generate Report</h3>
-                        <p>Export data and analysis</p>
-                        <div class="form-group">
-                            <label>Time Period</label>
-                            <select name="period">
-                                <option value="week">This week</option>
-                                <option value="month">This month</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Format</label>
-                            <div class="format-buttons">
-                                <button type="submit" name="format" value="csv" class="active">CSV</button>
-                                <button type="submit" name="format" value="pdf">PDF</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="generate-middle">
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select name="category">
-                                <option value="all">All</option>
-                                <option value="plastic">Plastic</option>
-                                <option value="glass">Glass</option>
-                                <option value="paper">Paper</option>
-                                <option value="metal">Metal</option>
-                                <option value="household">Household</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select name="status">
-                                <option value="all">All</option>
-                                <option value="pending">Pending</option>
-                                <option value="progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                            </select>
-                        </div>
-                  </div>
-                              <div class="generate-right">
-                                <button type="submit" class="generate-btn">Generate Report</button>
-                         </div>
+    <div class="admin-card admin-generate-card">
+        <div class="generate-left">
+            <h3>Generate Report</h3>
+            <p>Export data and analysis</p>
+            <div class="form-group">
+                <label>Time Period</label>
+                <select name="period">
+                    <option value="week">This week</option>
+                    <option value="month">This month</option>
+                    <option value="custom">Custom range</option>
+                </select>
+            </div>
+           <div class="form-group" id="customRangeGroup" style="display: none;">
+                <label>From</label>
+                <input type="date" name="date_from" class="date-picker" placeholder="Selectează data..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+                <label style="margin-top: 8px;">To</label>
+                <input type="date" name="date_to" class="date-picker" placeholder="Selectează data..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;">
+            </div>
+            <div class="form-group">
+                <label>Format</label>
+                <div class="format-buttons">
+                    <button type="button" class="format-btn active" data-format="csv">CSV</button>
+                    <button type="button" class="format-btn" data-format="pdf">PDF</button>
+                    <input type="hidden" name="format" id="selectedFormat" value="csv">
                 </div>
-            </form>
+            </div>
+        </div>
+        <div class="generate-middle">
+            <div class="form-group">
+                <label>Category</label>
+                <select name="category">
+                    <option value="all">All</option>
+                    <option value="Plastic">Plastic</option>
+                    <option value="Glass">Glass</option>
+                    <option value="Paper">Paper</option>
+                    <option value="Metal">Metal</option>
+                    <option value="Household">Household</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status">
+                    <option value="all">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+        </div>
+        <div class="generate-right">
+            <button type="submit" class="generate-btn" style="padding: 12px 24px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap;">Generate Report</button>
+        </div>
+    </div>
+</form>
 
         </div>
     </div>
@@ -366,6 +375,42 @@ foreach ($categoryLines as $line) {
         dot.addEventListener("mouseleave", () => {
             tooltip.style.opacity = 0;
             tooltip.style.display = "none";
+        });
+    });
+    const periodSelect = document.querySelector("select[name='period']");
+if (periodSelect) {
+    periodSelect.addEventListener("change", function() {
+        document.getElementById("customRangeGroup").style.display = this.value === "custom" ? "block" : "none";
+    });
+    
+}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    const fromPicker = flatpickr("input[name='date_from']", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        onChange: function(selectedDates, dateStr, instance) {
+            toPicker.set("minDate", dateStr);
+        }
+    });
+
+    const toPicker = flatpickr("input[name='date_to']", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        onChange: function(selectedDates, dateStr, instance) {
+            fromPicker.set("maxDate", dateStr);
+        }
+    });
+
+    document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('selectedFormat').value = this.dataset.format;
         });
     });
 </script>
