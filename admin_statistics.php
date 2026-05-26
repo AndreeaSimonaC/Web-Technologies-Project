@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 }
 require_once 'config/db.php';
 require_once 'models/ReportModel.php';
+$conn = getDB();
 
     $mode = $_GET['mode'] ?? 'daily';
     $counts = getReportCounts();
@@ -21,7 +22,7 @@ require_once 'models/ReportModel.php';
         $categoryPercentages[$name] = $totalReports > 0 ? round(($count / $totalReports) * 100) : 0;
     }
 
-    $colors = ["Paper" => "#106faa", "Plastic" => "#e7ee1b", "Metal" => "#eb3e31", "Glass" => "#1fc132", "Household" => "#633b28"];
+    $colors = ["Paper" => "#3b82f6", "Plastic" => "#f59e0b", "Metal" => "#ef4444", "Glass" => "#10b981", "Household" => "#633b28"];
     $start = 0; $gradientParts = [];
     foreach ($categoryPercentages as $name => $percent) {
         $end = $start + $percent;
@@ -56,6 +57,61 @@ require_once 'models/ReportModel.php';
     for ($i = 5; $i >= 0; $i--) { $yLabels[] = round(($max / 5) * $i); }
 
     $locationStats = getLocationStats(5);
+        $categoryColors = [
+        "Paper"     => "#3b82f6",
+        "Plastic"   => "#f59e0b",
+        "Metal"     => "#ef4444",
+        "Glass"     => "#10b981",
+        "Household" => "#633b28"
+    ];
+
+$categoryLines = [];
+$catNames = array_keys($categoryStats);
+
+foreach ($catNames as $catName) {
+    $catData = [];
+    if ($mode === 'weekly') {
+        $q = $conn->prepare("
+            SELECT YEARWEEK(r.created_at, 1) as week, COUNT(*) as total
+            FROM reports r
+            JOIN categories c ON r.category_id = c.id
+            WHERE c.name = ? AND r.created_at >= NOW() - INTERVAL 8 WEEK
+            GROUP BY week
+        ");
+        $q->bind_param("s", $catName);
+        $q->execute();
+        $rows = $q->get_result();
+        $map = [];
+        while ($row = $rows->fetch_assoc()) { $map[$row['week']] = $row['total']; }
+        for ($i = 7; $i >= 0; $i--) {
+            $week = date("oW", strtotime("-$i week"));
+            $catData[] = $map[$week] ?? 0;
+        }
+    } else {
+        $q = $conn->prepare("
+            SELECT DATE(r.created_at) as day, COUNT(*) as total
+            FROM reports r
+            JOIN categories c ON r.category_id = c.id
+            WHERE c.name = ? AND r.created_at >= NOW() - INTERVAL 7 DAY
+            GROUP BY DATE(r.created_at)
+        ");
+        $q->bind_param("s", $catName);
+        $q->execute();
+        $rows = $q->get_result();
+        $map = [];
+        while ($row = $rows->fetch_assoc()) { $map[$row['day']] = $row['total']; }
+        for ($i = 6; $i >= 0; $i--) {
+            $date = date("Y-m-d", strtotime("-$i days"));
+            $catData[] = $map[$date] ?? 0;
+        }
+    }
+    $categoryLines[$catName] = $catData;
+}
+
+$catMax = 1;
+foreach ($categoryLines as $line) {
+    $catMax = max($catMax, max($line));
+}
     $locationMax= max(array_values($locationStats) ?: [1]);
 ?>
 <!DOCTYPE html>
@@ -105,7 +161,6 @@ require_once 'models/ReportModel.php';
             </div>
 
             <div class="admin-stats-grid">
-                <!-- Reports by Category -->
                 <div class="admin-card">
                     <div class="card-header-row"><h3>Reports by category</h3></div>
                     <div class="category-chart-wrapper">
@@ -176,36 +231,42 @@ require_once 'models/ReportModel.php';
                 </div>
 
                 <div class="admin-card">
-                    <div class="card-header-row">
-                        <h3>Category Trends</h3>
-                        <span class="stats-period-badge">Daily</span>
-                    </div>
-                    <div class="line-chart-wrapper">
-                        <div class="chart-axes">
-                            <div class="y-axis">
-                                <?php foreach ($yLabels as $y): ?><span><?= $y ?></span><?php endforeach; ?>
-                            </div>
-                            <div class="graph-area">
-                                <svg viewBox="0 0 300 150" class="line-svg">
-                                    <polyline fill="none" stroke="#1b641b" stroke-width="2" points="<?= $pointsString ?>"/>
-                                    <polyline fill="none" stroke="#eb3e31" stroke-width="2"
-                                        points="<?php
-                                            $pts2 = [];
-                                            foreach ($chartData as $i => $v) {
-                                                $v2 = max(0, $v - 1);
-                                                $pts2[] = ($i * $stepX) . "," . ($height - ($v2 / $max * $height));
-                                            }
-                                            echo implode(" ", $pts2);
-                                        ?>"/>
-                                </svg>
-                            </div>
+                     <div class="card-header-row">
+                           <h3>Category Trends</h3>
+                          <select id="trendMode" class="small-select">
+                        <option value="daily" <?= $mode === 'daily' ? 'selected' : '' ?>>Daily</option>
+                        <option value="weekly" <?= $mode === 'weekly' ? 'selected' : '' ?>>Weekly</option>
+                      </select>
+                 </div>
+                  <div class="line-chart-wrapper">
+                      <div class="chart-axes">
+                             <div class="y-axis">
+                                   <?php for ($i = $catMax; $i >= 0; $i -= max(1, round($catMax / 5))): ?>
+                                      <span><?= $i ?></span>
+                                      <?php endfor; ?>
+                                   </div>
+                           <div class="graph-area">
+                            <svg viewBox="0 0 300 150" class="line-svg">
+                           <?php foreach ($categoryLines as $catName => $catData):
+                               $catPoints = [];
+                               $catStepX = 300 / max(count($catData) - 1, 1);
+                               foreach ($catData as $i => $val) {
+                                $catPoints[] = ($i * $catStepX) . "," . (150 - ($val / $catMax * 150));
+                           }
+                               $catPointsStr = implode(" ", $catPoints);
+                               $catColor = $categoryColors[$catName] ?? "#999";
+                           ?>
+                                <polyline fill="none" stroke="<?= $catColor ?>" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="<?= $catPointsStr ?>"/> 
+                                 <?php endforeach; ?>
+                              </svg>
+                         </div>
+                      </div>
+                            <div class="x-axis">
+                          <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
+                               </div>
+                         </div>
                         </div>
-                        <div class="x-axis">
-                            <?php foreach ($labels as $label): ?><span><?= $label ?></span><?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                 </div>
 
             <div class="admin-card stats-full-card" style="margin-bottom: 30px;">
                 <div class="card-header-row"><h3>Reports By Location</h3></div>
@@ -263,10 +324,10 @@ require_once 'models/ReportModel.php';
                                 <option value="resolved">Resolved</option>
                             </select>
                         </div>
-                    </div>
-                   <div class="generate-right">
-    <button type="submit" class="generate-btn">Generate Report</button>
-</div>
+                  </div>
+                              <div class="generate-right">
+                                <button type="submit" class="generate-btn">Generate Report</button>
+                         </div>
                 </div>
             </form>
 
@@ -285,6 +346,12 @@ require_once 'models/ReportModel.php';
         modeSelect.addEventListener("change", function() {
             window.location.href = "?mode=" + this.value;
         });
+    }
+    const trendSelect = document.getElementById("trendMode");
+    if (trendSelect) {
+    trendSelect.addEventListener("change", function() {
+        window.location.href = "?mode=" + this.value;
+    });
     }
 
     const tooltip = document.getElementById("chartTooltip");

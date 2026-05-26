@@ -103,24 +103,66 @@ function getReportsOverTime($mode = 'daily') {
 
 function getLocationStats($limit = 5) {
     $conn = getDB();
-    $stats = [];
-    $stmt = $conn->prepare("
-        SELECT location, COUNT(*) as total 
-        FROM reports 
-        GROUP BY location 
-        ORDER BY total DESC 
-        LIMIT ?
-    ");
-    $stmt->bind_param("i", $limit);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $shortName = explode(",", $row['location'])[0];
-        $stats[$shortName] = $row['total'];
-    }
-    return $stats;
-}
+    $sql = "SELECT location FROM reports";
+    $result = $conn->query($sql);
 
+    $locationCounts = [];
+
+    $cartiere = [
+        'Bucium', 'Copou', 'Tudor Vladimirescu', 'Tudor', 'Podu Roș', 'Podu Ros', 
+        'Alexandru cel Bun', 'Alexandru', 'Nicolina', 'Dacia', 'Păcurari', 'Pacurari', 
+        'CUG', 'Bularga', 'Cantemir', 'Aviației', 'Aviatiei', 'Tătărași', 'Tatarasi', 
+        'Moara de Vânt', 'Moara de Vant', 'Galata', 'Centru', 'Frumoasa', 'Manta Roșie', 
+        'Manta Rosie', 'Baza 3', 'Podu de Fier', 'Târgu Cucu', 'Targu Cucu', 'Țicău', 
+        'Ticau', 'Sărărie', 'Sararie', 'Canta', 'Zimbru', 'Dancu', 'Valea Lupului', 'Miroslava'
+    ];
+
+    $normalizare = [
+        'Podu Ros' => 'Podu Roș',
+        'Pacurari' => 'Păcurari',
+        'Aviatiei' => 'Aviației',
+        'Tatarasi' => 'Tătărași',
+        'Moara de Vant' => 'Moara de Vânt',
+        'Manta Rosie' => 'Manta Roșie',
+        'Targu Cucu' => 'Târgu Cucu',
+        'Ticau' => 'Țicău',
+        'Sararie' => 'Sărărie',
+        'Tudor' => 'Tudor Vladimirescu',
+        'Alexandru' => 'Alexandru cel Bun'
+    ];
+
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $rawLocation = $row['location'];
+            $found = false;
+
+            foreach ($cartiere as $cartier) {
+                if (stripos($rawLocation, $cartier) !== false) {
+                    $numeCurat = isset($normalizare[$cartier]) ? $normalizare[$cartier] : $cartier;
+                    
+                    $locationCounts[$numeCurat] = ($locationCounts[$numeCurat] ?? 0) + 1;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $parts = explode(',', $rawLocation);
+                $numeScurt = trim($parts[0]);
+                
+                if (strlen($numeScurt) > 25) {
+                    $numeScurt = substr($numeScurt, 0, 22) . '...';
+                }
+                
+                $locationCounts[$numeScurt] = ($locationCounts[$numeScurt] ?? 0) + 1;
+            }
+        }
+    }
+
+    arsort($locationCounts);
+
+    return array_slice($locationCounts, 0, $limit, true);
+}
 function getStatusStats() {
     $conn = getDB();
     $stats = [];
