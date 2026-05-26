@@ -1,17 +1,14 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo "Unauthorized";
-    exit;
-}
-
-require_once 'config/db.php';
-require_once 'models/UserModel.php';
-require_once 'models/ReportModel.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../models/ReportModel.php';
 
 function handleUserAction() {
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        http_response_code(403);
+        echo "Unauthorized";
+        exit;
+    }
     $id     = $_POST['id']     ?? null;
     $action = $_POST['action'] ?? null;
 
@@ -45,6 +42,11 @@ function handleUserAction() {
 }
 
 function handleGenerateReport() {
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        http_response_code(403);
+        echo "Unauthorized";
+        exit;
+    }
     $conn     = getDB();
     $period   = $_GET['period']   ?? 'week';
     $category = $_GET['category'] ?? 'all';

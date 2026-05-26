@@ -13,7 +13,7 @@ document.getElementById("locateButton").addEventListener("click", function () {
     );
 });
 
-fetch("get_reports.php").then(response => response.json()).then(data => {
+fetch("api/get_reports.php").then(response => response.json()).then(data => {
     data.forEach(report => {
         if (!report.latitude || !report.longitude) return;
 

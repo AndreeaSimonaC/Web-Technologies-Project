@@ -52,6 +52,37 @@ $error = handleRegister();
         </form>
     </div>
     <script>
+    const usernameInput = document.querySelector('input[name="username"]');
+    const usernameMsg   = document.createElement('small');
+    usernameMsg.style.marginTop = "4px";
+    usernameMsg.style.display   = "block";
+    usernameMsg.style.fontWeight = "500";
+    usernameInput.parentElement.appendChild(usernameMsg);
+
+    let debounceTimer;
+    usernameInput.addEventListener("input", function () {
+        const val = this.value.trim();
+        usernameMsg.textContent = "";
+
+        if (val.length < 3) return;
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetch("api/check_username.php?username=" + encodeURIComponent(val))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "available") {
+                        usernameMsg.style.color = "#2e7d32";
+                    } else if (data.status === "taken" || data.status === "invalid") {
+                        usernameMsg.style.color = "#c0392b";
+                    }
+                    usernameMsg.textContent = data.message ?? "";
+                })
+                .catch(() => { usernameMsg.textContent = ""; });
+        }, 400);
+    });
+</script>
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             var passwordInput = document.getElementById("passwordInput");
             var icon = document.getElementById("togglePassword");

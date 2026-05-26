@@ -1,5 +1,5 @@
 <?php
 session_start();
-require_once 'controllers/AdminController.php';
+require_once __DIR__ . '/../controllers/AdminController.php';
 handleUserAction();
 ?>

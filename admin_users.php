@@ -1,10 +1,16 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php"); exit();
-}
+
 require_once 'config/db.php';
 require_once 'models/UserModel.php';
+
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
 
 $conn = getDB();
 
@@ -338,7 +344,7 @@ $result = $stmt->get_result();
         document.getElementById("saveUserBtn").addEventListener("click", () => {
             const role = document.getElementById("editRole").value;
             const email = document.getElementById("editEmail").value;
-            fetch("user_action.php", {
+            fetch("api/user_action.php", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
@@ -359,7 +365,7 @@ $result = $stmt->get_result();
             btn.addEventListener("click", function() {
                 selectedUserId = this.dataset.id;
                 currentAction = "delete";
-
+                document.getElementById("confirmDelete").textContent = "Yes, Delete";
                 document.getElementById("confirmText").textContent = "Are you sure you want to delete this user?";
                 document.getElementById("deleteOverlay").style.display = "flex";
             });
@@ -367,6 +373,7 @@ $result = $stmt->get_result();
         document.getElementById("deactivateBtn").addEventListener("click", function() {
             selectedUserId = this.dataset.id;
             currentAction = "deactivate";
+            document.getElementById("confirmDelete").textContent = "Yes, Deactivate";
             document.getElementById("confirmText").textContent = "Deactivate this user?";
             document.getElementById("deleteOverlay").style.display = "flex";
         });
@@ -375,7 +382,7 @@ $result = $stmt->get_result();
             document.getElementById("deleteOverlay").style.display = "none";
         };
         document.getElementById("confirmDelete").onclick = () => {
-            fetch("user_action.php", {
+            fetch("api/user_action.php", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"

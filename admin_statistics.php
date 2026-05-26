@@ -1,7 +1,11 @@
 <?php
-    session_start();
-    require_once 'config/db.php';
-    require_once 'models/ReportModel.php';
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
+require_once 'config/db.php';
+require_once 'models/ReportModel.php';
 
     $mode = $_GET['mode'] ?? 'daily';
     $counts = getReportCounts();
@@ -71,9 +75,10 @@
             <h1 class="admin-title">Statistics &amp; Analysis</h1>
             <h2 class="admin-subtitle">Explore detailed insights about waste reports and system activity.</h2>
 
-            <!-- Summary Cards: Reports -->
-            <div class="stats-summary-block">
-                <div class="stats-summary-label">Summary Reports for <span class="stats-period-badge">This Week</span></div>
+            <div class="stats-summary-block" style="margin-bottom: 30px;">
+                <div style="font-size: 18px; color: white; margin-bottom: 20px; font-family: 'Poppins', sans-serif;">
+    Summary Reports for <span style="background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; border-radius: 12px; padding: 5px 15px; font-size: 14px; font-weight: 600; margin-left: 10px; display: inline-block;">This Week</span>
+</div>
                 <div class="admin-overview-grid">
                     <div class="stat-card">
                         <div class="stat-header header-green"><img src="public/assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
@@ -99,7 +104,6 @@
                 </div>
             </div>
 
-            <!-- Two donut charts row -->
             <div class="admin-stats-grid">
                 <!-- Reports by Category -->
                 <div class="admin-card">
@@ -120,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Reports Over Time -->
                 <div class="admin-card">
                     <div class="card-header-row">
                         <h3>Reports Over Time</h3>
@@ -154,7 +157,6 @@
                     </div>
                 </div>
 
-                <!-- Reports by Status -->
                 <div class="admin-card">
                     <div class="card-header-row"><h3>Reports by Status</h3></div>
                     <div class="category-chart-wrapper">
@@ -173,7 +175,6 @@
                     </div>
                 </div>
 
-                <!-- Category Trends (placeholder line chart reusing same data) -->
                 <div class="admin-card">
                     <div class="card-header-row">
                         <h3>Category Trends</h3>
@@ -189,7 +190,6 @@
                                     <polyline fill="none" stroke="#1b641b" stroke-width="2" points="<?= $pointsString ?>"/>
                                     <polyline fill="none" stroke="#eb3e31" stroke-width="2"
                                         points="<?php
-                                            // Offset the second line slightly to simulate category trend
                                             $pts2 = [];
                                             foreach ($chartData as $i => $v) {
                                                 $v2 = max(0, $v - 1);
@@ -207,8 +207,7 @@
                 </div>
             </div>
 
-            <!-- Reports by Location bar chart -->
-            <div class="admin-card stats-full-card">
+            <div class="admin-card stats-full-card" style="margin-bottom: 30px;">
                 <div class="card-header-row"><h3>Reports By Location</h3></div>
                 <div class="location-bar-chart">
                     <?php foreach ($locationStats as $name => $count): ?>
@@ -223,7 +222,6 @@
                 </div>
             </div>
 
-            <!-- Generate Report -->
             <form method="GET" action="generate_report.php">
                 <div class="admin-card admin-generate-card">
                     <div class="generate-left">
@@ -266,9 +264,9 @@
                             </select>
                         </div>
                     </div>
-                    <div class="generate-right">
-                        <button type="submit" class="generate-btn">Generate Report</button>
-                    </div>
+                   <div class="generate-right">
+    <button type="submit" class="generate-btn">Generate Report</button>
+</div>
                 </div>
             </form>
 
@@ -282,7 +280,6 @@
         document.body.classList.toggle("no-scroll");
     });
 
-    // Chart mode switcher
     const modeSelect = document.getElementById("chartMode");
     if (modeSelect) {
         modeSelect.addEventListener("change", function() {
@@ -290,7 +287,6 @@
         });
     }
 
-    // Tooltip on chart dots
     const tooltip = document.getElementById("chartTooltip");
     document.querySelectorAll(".chart-dot").forEach(dot => {
         dot.addEventListener("mousemove", (e) => {

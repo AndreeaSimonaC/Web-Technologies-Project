@@ -291,7 +291,7 @@
         document.getElementById("cancelBtn").onclick = () => { document.getElementById("confirmOverlay").style.display = "none"; };
         document.getElementById("confirmBtn").onclick = () => {
             document.getElementById("confirmOverlay").style.display = "none";
-            fetch("update_report.php", {
+            fetch("api/update_report.php", {
                     method: "POST",
                     headers: {"Content-Type": "application/x-www-form-urlencoded"},
                     body: `id=${currentReportId}&action=${currentAction}`

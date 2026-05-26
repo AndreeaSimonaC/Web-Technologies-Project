@@ -1,8 +1,11 @@
 <?php
-   
-    session_start();
-    require_once 'config/db.php';
-    require_once 'models/ReportModel.php';
+session_start();
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
+require_once 'config/db.php';
+require_once 'models/ReportModel.php';
 
     $mode    = $_GET['mode'] ?? 'daily';
     $counts  = getReportCounts();
@@ -270,7 +273,7 @@
 
             if (cancelBtn) { cancelBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none"; }; }
             if (confirmBtn) {  confirmBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none";
-                    fetch("update_report.php", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${currentReportId}&action=${currentAction}` })
+                    fetch("api/update_report.php", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${currentReportId}&action=${currentAction}` })
                         .then(res => res.text())
                         .then(() => { document.getElementById("successOverlay").style.display = "flex"; setTimeout(() => location.reload(), 1500); });
                 };
