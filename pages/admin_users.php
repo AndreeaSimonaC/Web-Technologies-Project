@@ -173,7 +173,7 @@ $result = $stmt->get_result();
                         <div class="filter-group">
                             <button type="submit" class="filter-btn">Apply</button>
                         </div>
-                        <a href="admin_users.php" class="filter-reset">Reset</a>
+                        <a href="admin_users.php" class="filter-reset" id="resetFilterBtn">Reset</a>
                     </div>
                 </form>
                 <div class="users-layout">
@@ -194,7 +194,7 @@ $result = $stmt->get_result();
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="usersTableBody">
                                     <?php while ($user = $result->fetch_assoc()): ?>
                                         <tr>
                                             <td>#<?= $user['id'] ?></td>
@@ -414,6 +414,35 @@ $result = $stmt->get_result();
                 })
                 .then(() => location.reload());
         };
+
+        function applyUsersFiltersAjax() {
+
+            const status = document.querySelector("select[name='status']").value;
+            const role = document.querySelector("select[name='role']").value;
+            const search = document.querySelector("input[name='search']").value;
+            const dateFrom = document.querySelector("input[name='date_from']").value;
+            const dateTo = document.querySelector("input[name='date_to']").value;
+            const params = new URLSearchParams({ status: status, role: role, search: search,  date_from: dateFrom, date_to: dateTo });
+            fetch("../api/filter_users.php?" + params.toString())
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("usersTableBody").innerHTML = html;
+                });
+        }
+
+        document.querySelector("select[name='status']").addEventListener("change", applyUsersFiltersAjax);
+        document.querySelector("select[name='role']").addEventListener("change", applyUsersFiltersAjax);
+        document.querySelector("input[name='search']").addEventListener("keyup", applyUsersFiltersAjax);
+        document.querySelector("input[name='date_from']").addEventListener("change", applyUsersFiltersAjax);
+        document.querySelector("input[name='date_to']").addEventListener("change", applyUsersFiltersAjax);
+        document.getElementById("resetFiltersBtn").addEventListener("click", function() {
+                document.querySelector("input[name='search']").value = "";
+                document.querySelector("select[name='role']").value = "";
+                document.querySelector("select[name='status']").value = "";
+                document.querySelector("input[name='date_from']").value = "";
+                document.querySelector("input[name='date_to']").value = "";
+                applyUsersFiltersAjax();
+        });
     </script>
     <?php include '../views/layout/footer.php'; ?>
 

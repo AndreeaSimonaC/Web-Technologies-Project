@@ -240,7 +240,7 @@ require_once '../models/ReportModel.php';
                         <div class="filter-group">
                             <button type="submit" class="filter-btn">Apply</button>
                         </div>
-                        <a href="admin_reports.php" class="filter-reset">Reset</a>
+                        <a href="admin_reports.php" class="filter-reset" id="resetReportsFiltersBtn">Reset</a>
                     </div>
                 </form>
                 <div class="users-layout">
@@ -259,7 +259,7 @@ require_once '../models/ReportModel.php';
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="reportsTableBody">
                                     <?php while ($report = $result->fetch_assoc()): ?>
                                         <tr>
                                             <td>#<?= $report['id'] ?></td>
@@ -529,6 +529,32 @@ require_once '../models/ReportModel.php';
             panel.style.display = "none";
             selectedId = null;
         }
+        function applyFiltersAjax() {
+            const status = document.querySelector("select[name='status']").value;
+            const category = document.querySelector("select[name='category']").value;
+            const search = document.querySelector("input[name='search']").value;
+            const dateFrom = document.querySelector("input[name='date_from']").value;
+            const dateTo = document.querySelector("input[name='date_to']").value;
+            const params = new URLSearchParams({ status: status, category: category, search: search, date_from: dateFrom, date_to: dateTo });
+            fetch("../api/filter_reports.php?" + params.toString())
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("reportsTableBody").innerHTML = html;
+                });
+        }
+        document.querySelector("select[name='status']").addEventListener("change", applyFiltersAjax);
+        document.querySelector("select[name='category']").addEventListener("change", applyFiltersAjax);
+        document.querySelector("input[name='search']").addEventListener("keyup", applyFiltersAjax);
+        document.querySelector("input[name='date_from']").addEventListener("change", applyFiltersAjax);
+        document.querySelector("input[name='date_to']").addEventListener("change", applyFiltersAjax);
+        document.getElementById("resetReportsFiltersBtn").addEventListener("click", function() {
+            document.querySelector("input[name='search']").value = "";
+            document.querySelector("select[name='category']").value = "";
+            document.querySelector("select[name='status']").value = "";
+            document.querySelector("input[name='date_from']").value = "";
+            document.querySelector("input[name='date_to']").value = "";
+            applyFiltersAjax();
+    });
     </script>
     <?php include '../views/layout/footer.php'; ?>
 
