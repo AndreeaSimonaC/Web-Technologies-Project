@@ -5,6 +5,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 require_once '../config/db.php';
+require_once '../models/LogModel.php';
+$logs = getAllLogs();
 require_once '../models/ReportModel.php';
     $conn = getDB();
 ?>
@@ -21,9 +23,17 @@ require_once '../models/ReportModel.php';
             <div id="settings" class="admin-content-section active">
                 <div class="admin-table-card logs-card">
                     <h2>> System Internal Logs</h2>
-                    <p>[06:12:01] Database backup completed successfully.</p>
-                    <p>[06:10:45] New admin login detected: IP 192.168.1.5</p>
-                    <p>[05:55:12] Auto-report: 5 issues moved to "Overdue" status.</p>
+                    <?php if (empty($logs)): ?>
+                       <p>No logs recorded yet.</p>
+                            <?php else: ?>
+                            <?php foreach ($logs as $log): ?>
+                         <p>
+                               [<?= date("H:i:s", strtotime($log['created_at'])) ?>] 
+                              <strong><?= htmlspecialchars($log['username'] ?? 'System') ?></strong> 
+                             - <?= htmlspecialchars($log['action']) ?>
+                      </p>
+                              <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 

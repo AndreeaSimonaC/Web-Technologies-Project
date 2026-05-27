@@ -42,6 +42,9 @@ function handleUserAction() {
 }
 
 function handleGenerateReport() {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
         http_response_code(403);
         echo "Unauthorized";
@@ -179,6 +182,49 @@ $cleanest = array_key_last($locationCount)  ?? 'N/A';
             echo '</tr>';
         }
         echo '</table></body></html>';
+        exit;
+    }
+    if ($format === 'pdf') {
+        require_once __DIR__ . '/../vendor/autoload.php';
+
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator('CityWatch');
+        $pdf->SetTitle('CityWatch Report');
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->AddPage();
+        $pdf->SetFont('dejavusans', '', 10);
+
+        $html = '<h2>CityWatch Report</h2>
+        <p><b>Dirtiest Area:</b> ' . htmlspecialchars($dirtiest) . '</p>
+        <p><b>Cleanest Area:</b> ' . htmlspecialchars($cleanest) . '</p>
+        <br>
+        <table border="1" cellpadding="4">
+            <thead>
+                <tr bgcolor="#2e7d32" color="#ffffff">
+                    <th width="10%">ID</th>
+                    <th width="20%">Category</th>
+                    <th width="40%">Location</th>
+                    <th width="15%">Status</th>
+                    <th width="15%">Date</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+        foreach ($rows as $row) {
+            $html .= '<tr>
+                <td>' . $row['id'] . '</td>
+                <td>' . htmlspecialchars($row['category']) . '</td>
+                <td>' . htmlspecialchars($row['location']) . '</td>
+                <td>' . ucfirst($row['status']) . '</td>
+                <td>' . date("d M Y", strtotime($row['created_at'])) . '</td>
+            </tr>';
+        }
+
+        $html .= '</tbody></table>';
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+        $pdf->Output('citywatch_report.pdf', 'I');
         exit;
     }
 }
