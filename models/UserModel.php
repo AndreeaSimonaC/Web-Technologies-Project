@@ -74,7 +74,15 @@ function updateUser($user_id, $role, $email) {
 
 function deactivateUser($user_id) {
     $conn = getDB();
-    $stmt = $conn->prepare("UPDATE users SET status = 'inactive' WHERE id = ?");
+    
+    $stmt = $conn->prepare("
+UPDATE users
+        SET status = CASE
+            WHEN status = 'active' THEN 'inactive'
+            ELSE 'active'
+        END
+        WHERE id = ?
+    ");
     $stmt->bind_param("i", $user_id);
     return $stmt->execute();
 }

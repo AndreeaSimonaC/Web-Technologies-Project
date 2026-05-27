@@ -13,17 +13,17 @@ document.getElementById("locateButton").addEventListener("click", function () {
     );
 });
 
-fetch("api/get_reports.php").then(response => response.json()).then(data => {
+fetch("../api/get_reports.php").then(response => response.json()).then(data => {
     data.forEach(report => {
         if (!report.latitude || !report.longitude) return;
 
         let iconUrl = "";
         switch (parseInt(report.category_id)) {
-            case 1: iconUrl = "public/assets/pinplastic.png"; break;
-            case 2: iconUrl = "public/assets/pinpaper.png"; break;
-            case 3: iconUrl = "public/assets/pinglass.png"; break;
-            case 4: iconUrl = "public/assets/pinmetal.png"; break;
-            case 5: iconUrl = "public/assets/pinhousehold.png"; break;
+            case 1: iconUrl = "../public/assets/pinplastic.png"; break;
+            case 2: iconUrl = "../public/assets/pinpaper.png"; break;
+            case 3: iconUrl = "../public/assets/pinglass.png"; break;
+            case 4: iconUrl = "../public/assets/pinmetal.png"; break;
+            case 5: iconUrl = "../public/assets/pinhousehold.png"; break;
             default: return;
         }
 
@@ -36,7 +36,7 @@ fetch("api/get_reports.php").then(response => response.json()).then(data => {
 
         L.marker([report.latitude, report.longitude], {
             icon: customIcon,
-            opacity: report.status === "archived" ? 0.8 : 1
+            opacity: report.status === "archived" ? 0.5 : 1
         }).addTo(map).on("click", function () {
             document.getElementById("ovCategory").textContent = report.category_name;
             document.getElementById("ovLocation").textContent = report.location;

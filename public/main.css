@@ -1400,10 +1400,7 @@ footer {
 .action-archive {
     background: #6c757d;
 }
-.archived-pin {
-    filter: grayscale(100%);
-    opacity: 0.8;
-}
+
 .action-button {
     margin-top: 20px;
     width: 100%;

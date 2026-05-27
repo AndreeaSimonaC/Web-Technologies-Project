@@ -4,8 +4,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit;
 }
-require_once 'config/db.php';
-require_once 'models/ReportModel.php';
+require_once '../config/db.php';
+require_once '../models/ReportModel.php';
 $conn = getDB();
 
     $mode = $_GET['mode'] ?? 'daily';
@@ -117,11 +117,11 @@ foreach ($categoryLines as $line) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <?php $pageTitle = 'Statistics - CityWatch'; include 'views/layout/head.php'; ?>
+    <?php $pageTitle = 'Statistics - CityWatch'; include '../views/layout/head.php'; ?>
 </head>
 
 <body>
-<?php $navActive = 'statistics'; include 'views/layout/header.php'; ?>
+<?php $navActive = 'statistics'; include '../views/layout/header.php'; ?>
 
 <section class="dashboard-section">
     <div class="overlay"></div>
@@ -137,7 +137,7 @@ foreach ($categoryLines as $line) {
 </div>
                 <div class="admin-overview-grid">
                     <div class="stat-card">
-                        <div class="stat-header header-green"><img src="public/assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
+                        <div class="stat-header header-green"><img src="../public/assets/adminReportsTotalIcon.png"><span>Total Reports</span></div>
                         <div class="stat-body">
                             <h3><?= $totalReports ?></h3>
                             <span class="stat-change <?= $change >= 0 ? 'positive' : 'negative' ?>">
@@ -146,15 +146,15 @@ foreach ($categoryLines as $line) {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-red"><img src="public/assets/apPending.png"><span>Pending</span></div>
+                        <div class="stat-header header-red"><img src="../public/assets/apPending.png"><span>Pending</span></div>
                         <div class="stat-body"><h3><?= $pendingReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-orange"><img src="public/assets/apInProgress.png"><span>In progress</span></div>
+                        <div class="stat-header header-orange"><img src="../public/assets/apInProgress.png"><span>In progress</span></div>
                         <div class="stat-body"><h3><?= $progressReports ?></h3><span class="stat-change negative">↓ 10% from last week</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-header header-green-soft"><img src="public/assets/apResolved.png"><span>Resolved</span></div>
+                        <div class="stat-header header-green-soft"><img src="../public/assets/apResolved.png"><span>Resolved</span></div>
                         <div class="stat-body"><h3><?= $resolvedReports ?></h3><span class="stat-change positive">↑ 10% from last week</span></div>
                     </div>
                 </div>
@@ -170,7 +170,7 @@ foreach ($categoryLines as $line) {
                         <div class="category-legend">
                             <?php foreach ($categoryStats as $name => $count): ?>
                                 <div class="legend-item">
-                                    <img src="public/assets/pin<?= strtolower($name) ?>.png">
+                                    <img src="../public/assets/pin<?= strtolower($name) ?>.png">
                                     <span><?= $name ?></span>
                                     <span class="legend-value"><?= $categoryPercentages[$name] ?>% (<?= $count ?> reports)</span>
                                 </div>
@@ -283,7 +283,7 @@ foreach ($categoryLines as $line) {
                 </div>
             </div>
 
-            <form method="GET" action="generate_report.php">
+            <form method="GET" action="../api/generate_report.php">
     <div class="admin-card admin-generate-card">
         <div class="generate-left">
             <h3>Generate Report</h3>
@@ -414,6 +414,6 @@ if (periodSelect) {
         });
     });
 </script>
-<?php include 'views/layout/footer.php'; ?>
+<?php include '../views/layout/footer.php'; ?>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <?php
     session_start();
     if (!isset($_SESSION["user_id"])) { header("Location: login.php"); exit(); }
-    require_once 'config/db.php';
-    require_once 'models/UserModel.php';
-    require_once 'models/ReportModel.php';
+    require_once '../config/db.php';
+    require_once '../models/UserModel.php';
+    require_once '../models/ReportModel.php';
 
     $username      = $_SESSION["username"];
     $user_id       = $_SESSION["user_id"];
@@ -20,15 +20,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityWatch User Dashboard</title>
-    <link rel="stylesheet" href="public/main.css">
-    <link rel="icon" type="image/x-icon" href="public/assets/logosmall.png">
+    <link rel="stylesheet" href="../public/main.css">
+    <link rel="icon" type="image/x-icon" href="../public/assets/logosmall.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 
 <body>
    <header class="navbar">
-        <div class="logo"><img src="public/assets/logosmall.png" alt="CityWatchLogo"></div>
+        <div class="logo"><img src="../public/assets/logosmall.png" alt="CityWatchLogo"></div>
         
         <button class="hamburger" id="hamburger-menu">
             <span class="bar"></span>
@@ -37,12 +37,12 @@
         </button>
         
         <nav class="nav-links" id="nav-links">
-            <a href="userdashboard.php">Home</a>
+            <a href="../pages/userdashboard.php">Home</a>
             <a href="#map-section">Map</a>
             <a href="#reports-section">My Reports</a>
         </nav>
         <div class="nav-right">
-            <a href="logout.php" class="button logout-button"><img src="public/assets/logouticon.png" alt="logout icon">Logout</a>
+            <a href="../pages/logout.php" class="button logout-button"><img src="../public/assets/logouticon.png" alt="logout icon">Logout</a>
         </div>
     </header>
 
@@ -50,7 +50,7 @@
         <div class="overlay"></div>
         <div class="topsection-content">
             <h1>Welcome back, <?php echo htmlspecialchars($username); ?> <br>Keep your city clean.</h1>
-            <a href="reportformuser.php" class="cta-button"> + Report Waste </a>
+            <a href="../pages/reportformuser.php" class="cta-button"> + Report Waste </a>
         </div>
     </section>
     <section class="midsection" id="map-section">
@@ -64,11 +64,11 @@
             </div>
             <div class="map-footer">
                 <div class="legend">
-                    <div class="legend-item"><img src="public/assets/pinpaper.png" alt="paper pin"> Paper</div>
-                    <div class="legend-item"><img src="public/assets/pinplastic.png" alt="plastic pin"> Plastic</div>
-                    <div class="legend-item"><img src="public/assets/pinmetal.png" alt="metal pin"> Metal</div>
-                    <div class="legend-item"><img src="public/assets/pinglass.png" alt="glass pin"> Glass</div>
-                    <div class="legend-item"><img src="public/assets/pinhousehold.png" alt="household pin"> Household</div>
+                    <div class="legend-item"><img src="../public/assets/pinpaper.png" alt="paper pin"> Paper</div>
+                    <div class="legend-item"><img src="../public/assets/pinplastic.png" alt="plastic pin"> Plastic</div>
+                    <div class="legend-item"><img src="../public/assets/pinmetal.png" alt="metal pin"> Metal</div>
+                    <div class="legend-item"><img src="../public/assets/pinglass.png" alt="glass pin"> Glass</div>
+                    <div class="legend-item"><img src="../public/assets/pinhousehold.png" alt="household pin"> Household</div>
                 </div>
             </div>
         </div>
@@ -103,11 +103,11 @@
                                     <?php
                                     $icon = "";
                                     switch ($row['category_id']) {
-                                        case 1:  $icon = "public/assets/iconplastic.png"; break;
-                                        case 2:  $icon = "public/assets/iconpaper.png"; break;
-                                        case 3: $icon = "public/assets/iconglass.png"; break;
-                                        case 4: $icon = "public/assets/iconmetal.png"; break;
-                                        case 5: $icon = "public/assets/iconhousehold.png"; break;
+                                        case 1:  $icon = "../public/assets/iconplastic.png"; break;
+                                        case 2:  $icon = "../public/assets/iconpaper.png"; break;
+                                        case 3: $icon = "../public/assets/iconglass.png"; break;
+                                        case 4: $icon = "../public/assets/iconmetal.png"; break;
+                                        case 5: $icon = "../public/assets/iconhousehold.png"; break;
                                     }
                                     ?>
                                     <img src="<?= $icon ?>" class="report-icon">
@@ -136,7 +136,7 @@
                     <h3 class="impact-number"><?= $totalResolved ?> <?= $totalResolved == 1 ? 'area' : 'areas' ?></h3>
                     <p>in the last <strong><?= $timeText ?></strong></p>
                     <div class="impact-visual">
-                        <img src="public/assets/broom.png" class="broom">
+                        <img src="../public/assets/broom.png" class="broom">
                         <div class="thankyou-box">Thank you!</div>
                     </div>
                 </div>
@@ -175,6 +175,6 @@
             });
         });
     </script>
-    <script src="public/map.js"></script>
+    <script src="../js/map.js"></script>
 </body>
 </html>

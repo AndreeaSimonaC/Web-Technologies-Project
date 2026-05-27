@@ -4,8 +4,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit;
 }
-require_once 'config/db.php';
-require_once 'models/ReportModel.php';
+require_once '../config/db.php';
+require_once '../models/ReportModel.php';
 
     $mode    = $_GET['mode'] ?? 'daily';
     $counts  = getReportCounts();
@@ -51,10 +51,10 @@ require_once 'models/ReportModel.php';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <?php $pageTitle = 'Dashboard - CityWatch'; include 'views/layout/head.php'; ?>
+    <?php $pageTitle = 'Dashboard - CityWatch'; include '../views/layout/head.php'; ?>
 </head>
 <body>
-   <?php $navActive = 'overview'; include 'views/layout/header.php'; ?>
+   <?php $navActive = 'overview'; include '../views/layout/header.php'; ?>
     <section class="dashboard-section">
         <div class="overlay"></div>
         <div class="dashboard-container admin-layout">
@@ -64,7 +64,7 @@ require_once 'models/ReportModel.php';
                 <div class="admin-overview-grid">
                     <div class="stat-card">
                         <div class="stat-header header-green">
-                            <img src="public/assets/adminReportsTotalIcon.png">
+                            <img src="../public/assets/adminReportsTotalIcon.png">
                             <span>Total Reports</span>
                         </div>
                         <div class="stat-body">
@@ -76,7 +76,7 @@ require_once 'models/ReportModel.php';
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-red">
-                            <img src="public/assets/apPending.png">
+                            <img src="../public/assets/apPending.png">
                             <span>Pending Reports</span>
                         </div>
                         <div class="stat-body">
@@ -88,7 +88,7 @@ require_once 'models/ReportModel.php';
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-orange">
-                            <img src="public/assets/apInProgress.png">
+                            <img src="../public/assets/apInProgress.png">
                             <span>In Progress</span>
                         </div>
                         <div class="stat-body">
@@ -100,7 +100,7 @@ require_once 'models/ReportModel.php';
                     </div>
                     <div class="stat-card">
                         <div class="stat-header header-green-soft">
-                            <img src="public/assets/apResolved.png">
+                            <img src="../public/assets/apResolved.png">
                             <span>Resolved Reports</span>
                         </div>
                         <div class="stat-body">
@@ -121,11 +121,11 @@ require_once 'models/ReportModel.php';
                             </div>
                             <div class="map-footer">
                                 <div class="legend">
-                                    <div class="legend-item"><img src="public/assets/pinpaper.png"> Paper</div>
-                                    <div class="legend-item"><img src="public/assets/pinplastic.png"> Plastic</div>
-                                    <div class="legend-item"><img src="public/assets/pinmetal.png"> Metal</div>
-                                    <div class="legend-item"><img src="public/assets/pinglass.png"> Glass</div>
-                                    <div class="legend-item"><img src="public/assets/pinhousehold.png"> Household</div>
+                                    <div class="legend-item"><img src="../public/assets/pinpaper.png"> Paper</div>
+                                    <div class="legend-item"><img src="../public/assets/pinplastic.png"> Plastic</div>
+                                    <div class="legend-item"><img src="../public/assets/pinmetal.png"> Metal</div>
+                                    <div class="legend-item"><img src="../public/assets/pinglass.png"> Glass</div>
+                                    <div class="legend-item"><img src="../public/assets/pinhousehold.png"> Household</div>
                                 </div>
                             </div>
                         </div>
@@ -161,11 +161,11 @@ require_once 'models/ReportModel.php';
                                         $index++;
                                         $icon = "";
                                         switch ($row['category_id']) { 
-                                            case 1: $icon = "public/assets/iconplastic.png"; break;
-                                            case 2: $icon = "public/assets/iconpaper.png"; break;
-                                            case 3: $icon = "public/assets/iconglass.png"; break;
-                                            case 4: $icon = "public/assets/iconmetal.png"; break;
-                                            case 5: $icon = "public/assets/iconhousehold.png"; break;
+                                            case 1: $icon = "../public/assets/iconplastic.png"; break;
+                                            case 2: $icon = "../public/assets/iconpaper.png"; break;
+                                            case 3: $icon = "../public/assets/iconglass.png"; break;
+                                            case 4: $icon = "../public/assets/iconmetal.png"; break;
+                                            case 5: $icon = "../public/assets/iconhousehold.png"; break;
                                         }
                                         $statusClass = "";
                                         if ($row['status'] == "pending") $statusClass = "status-pending";
@@ -319,8 +319,8 @@ require_once 'models/ReportModel.php';
             if (modeSelect) { modeSelect.addEventListener("change", function () { const mode = this.value;  window.location.href = "?mode=" + mode; }); }
         });
     </script>
-   <script src="public/map.js?v=<?= time() ?>"></script>
-   <?php include 'views/layout/footer.php'; ?>
+   <script src="../js/map.js?v=<?= time() ?>"></script>
+   <?php include '../views/layout/footer.php'; ?>
 
 </body>
 </html>

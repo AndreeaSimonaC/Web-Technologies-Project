@@ -1,6 +1,6 @@
 <?php if (!isset($navActive)) $navActive = ''; ?>
 <header class="navbar">
-    <div class="logo"><img src="public/assets/logosmall.png" alt="Logo"></div>
+    <div class="logo"><img src="../public/assets/logosmall.png" alt="Logo"></div>
     <button class="hamburger" id="hamburger-menu">
         <span class="bar"></span><span class="bar"></span><span class="bar"></span>
     </button>
