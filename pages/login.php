@@ -1,5 +1,12 @@
 <?php
-session_start();
+require_once '../config/session.php';
+
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION["role"] === "admin") { header("Location: admindashboard.php"); exit(); }
+    if ($_SESSION["role"] === "worker") { header("Location: workerdashboard.php"); exit(); }
+    header("Location: userdashboard.php");
+    exit();
+}
 require_once '../controllers/AuthController.php';
 $error = handleLogin();
 ?>
@@ -48,6 +55,7 @@ $error = handleLogin();
                 <input type="password" name="password" id="passwordInput" required>
                 <img src="../public/assets/iconshowpass.png" alt="toggle password" id="togglePassword" style="cursor: pointer;">
             </div>
+            <label class="remember-me"><input type="checkbox" name="remember">Remember me</label>
             <button type="submit" class="login-button-submit">Login</button>
             <p class="link-to-signup">Don't have an account?<a href="../pages/register.php">Sign Up</a></p>
         </form>

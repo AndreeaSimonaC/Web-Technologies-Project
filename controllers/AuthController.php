@@ -36,7 +36,7 @@ function handleLogin() {
             $_SESSION["user_id"]  = $user["id"];
             $_SESSION["username"] = $user["username"];
             $_SESSION["role"]     = $user["role"];
-
+            if (isset($_POST['remember'])) { setcookie("remember_user", $user['id'], time() + (86400 * 30), "/"); }
             if ($user["role"] === "admin")  { header("Location: admindashboard.php"); exit(); }
             if ($user["role"] === "worker") { header("Location: workerdashboard.php"); exit(); }
             header("Location: userdashboard.php");
