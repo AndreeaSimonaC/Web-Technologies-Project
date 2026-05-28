@@ -273,7 +273,7 @@ require_once '../models/ReportModel.php';
 
             if (cancelBtn) { cancelBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none"; }; }
             if (confirmBtn) {  confirmBtn.onclick = () => { document.getElementById("confirmOverlay").style.display = "none";
-                    fetch("api/update_report.php", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${currentReportId}&action=${currentAction}` })
+                    fetch("../api/update_report.php", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `id=${currentReportId}&action=${currentAction}` })
                         .then(res => res.text())
                         .then(() => { document.getElementById("successOverlay").style.display = "flex"; setTimeout(() => location.reload(), 1500); });
                 };

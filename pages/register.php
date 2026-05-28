@@ -68,7 +68,7 @@ $error = handleRegister();
 
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            fetch("api/check_username.php?username=" + encodeURIComponent(val))
+            fetch("../api/check_username.php?username=" + encodeURIComponent(val))
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "available") {
