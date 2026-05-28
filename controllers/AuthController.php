@@ -25,17 +25,29 @@ function handleLogin() {
     }
 
     $conn = getDB();
-    $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE email = ? AND username = ?");
+    // Am adăugat 'status' în query pentru a putea verifica dacă e banat
+    $stmt = $conn->prepare("SELECT id, username, password, role, status FROM users WHERE email = ? AND username = ?");
     $stmt->bind_param("ss", $email, $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
+        
+        // Verificăm dacă e inactiv
+        if ($user["status"] === "inactive") {
+            return "Account deactivated. Contact an administrator.";
+        }
+
         if (password_verify($password, $user["password"])) {
             $_SESSION["user_id"]  = $user["id"];
             $_SESSION["username"] = $user["username"];
             $_SESSION["role"]     = $user["role"];
+            
+            // Scriem în log că s-a logat
+            require_once __DIR__ . '/../models/LogModel.php';
+            writeLog('User logged in', $_SESSION['user_id']);
+
             if (isset($_POST['remember'])) { setcookie("remember_user", $user['id'], time() + (86400 * 30), "/"); }
             if ($user["role"] === "admin")  { header("Location: admindashboard.php"); exit(); }
             if ($user["role"] === "worker") { header("Location: workerdashboard.php"); exit(); }

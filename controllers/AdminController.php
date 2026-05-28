@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../models/ReportModel.php';
+require_once __DIR__ . '/../models/LogModel.php';
 
 function handleUserAction() {
     if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -19,6 +20,7 @@ function handleUserAction() {
 
     if ($action === "delete") {
         deleteUser($id);
+        writeLog('User #' . $id . ' deleted', $_SESSION['user_id']);
         echo "deleted";
         exit;
     }
@@ -28,13 +30,27 @@ function handleUserAction() {
         $email = $_POST['email'] ?? null;
         if (!$role || !$email) { echo "Missing fields"; exit; }
         updateUser($id, $role, $email);
+        writeLog('User #' . $id . ' role updated to ' . $role, $_SESSION['user_id']);
         echo "updated";
         exit;
     }
 
-    if ($action === "deactivate") {
-        deactivateUser($id);
-        echo "deactivated";
+    if ($action === "toggle_status") {
+        $conn = getDB();
+        $stmt = $conn->prepare("SELECT status FROM users WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+
+        if ($res) {
+            $newStatus = ($res['status'] === 'active') ? 'inactive' : 'active';
+            $update = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
+            $update->bind_param("si", $newStatus, $id);
+            $update->execute();
+
+            writeLog('User #' . $id . ' status changed to ' . $newStatus, $_SESSION['user_id']);
+            echo "status_toggled";
+        }
         exit;
     }
 
@@ -42,9 +58,9 @@ function handleUserAction() {
 }
 
 function handleGenerateReport() {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+    ini_set('display_errors', 0);
     error_reporting(E_ALL);
+
     if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
         http_response_code(403);
         echo "Unauthorized";
@@ -52,180 +68,138 @@ function handleGenerateReport() {
     }
 
     $conn     = getDB();
-    $period   = $_GET['period']   ?? 'week';
+    $period   = $_GET['period']   ?? 'all';
     $category = $_GET['category'] ?? 'all';
-    $status   = $_GET['status']   ?? 'all';
-    $format   = $_GET['format']   ?? 'csv';
+    $format   = $_GET['format']   ?? 'pdf';
     $dateFrom = $_GET['date_from'] ?? '';
     $dateTo   = $_GET['date_to']   ?? '';
 
-    $where = "WHERE 1=1";
+    $where = [];
+    $params = [];
+    $types = "";
 
     if ($period === 'week') {
-        $where .= " AND r.created_at >= NOW() - INTERVAL 7 DAY";
+        $where[] = "r.created_at >= NOW() - INTERVAL 7 DAY";
     } elseif ($period === 'month') {
-        $where .= " AND r.created_at >= NOW() - INTERVAL 30 DAY";
-    } elseif ($period === 'custom' && $dateFrom && $dateTo) {
-        $where .= " AND DATE(r.created_at) BETWEEN '" . $conn->real_escape_string($dateFrom) . "' AND '" . $conn->real_escape_string($dateTo) . "'";
+        $where[] = "r.created_at >= NOW() - INTERVAL 30 DAY";
+    } elseif ($period === 'custom' && !empty($dateFrom) && !empty($dateTo)) {
+        $where[] = "DATE(r.created_at) BETWEEN ? AND ?";
+        $params[] = $dateFrom;
+        $params[] = $dateTo;
+        $types .= "ss";
     }
 
     if ($category !== 'all') {
-        $where .= " AND c.name = '" . $conn->real_escape_string($category) . "'";
-    }
-    if ($status !== 'all') {
-        $where .= " AND r.status = '" . $conn->real_escape_string($status) . "'";
+        $where[] = "c.name = ?";
+        $params[] = ucfirst($category);
+        $types .= "s";
     }
 
-    $result = $conn->query("
-        SELECT r.id, c.name AS category, r.location, r.status, r.created_at
-        FROM reports r
-        JOIN categories c ON r.category_id = c.id
-        $where
-        ORDER BY r.created_at DESC
-    ");
+    $sql = "SELECT r.id, c.name AS category, r.location, r.status, r.created_at
+            FROM reports r
+            JOIN categories c ON r.category_id = c.id";
+
+    if (!empty($where)) {
+        $sql .= " WHERE " . implode(" AND ", $where);
+    }
+
+    $sql .= " ORDER BY r.created_at DESC";
+
+    $stmt = $conn->prepare($sql);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     $rows = [];
-    while ($row = $result->fetch_assoc()) { $rows[] = $row; }
-
     $locationCount = [];
-   $cartiere = [
-    'Bucium', 'Copou', 'Tudor Vladimirescu', 'Tudor', 'Podu Roș', 'Podu Ros',
-    'Alexandru cel Bun', 'Alexandru', 'Nicolina', 'Dacia', 'Păcurari', 'Pacurari',
-    'CUG', 'Bularga', 'Cantemir', 'Aviației', 'Aviatiei', 'Tătărași', 'Tatarasi',
-    'Moara de Vânt', 'Moara de Vant', 'Galata', 'Centru', 'Frumoasa', 'Manta Roșie',
-    'Manta Rosie', 'Baza 3', 'Podu de Fier', 'Târgu Cucu', 'Targu Cucu', 'Țicău',
-    'Ticau', 'Sărărie', 'Sararie', 'Canta', 'Zimbru', 'Dancu', 'Valea Lupului', 'Miroslava'
-];
-
-$normalizare = [
-    'Podu Ros'      => 'Podu Roș',
-    'Pacurari'      => 'Păcurari',
-    'Aviatiei'      => 'Aviației',
-    'Tatarasi'      => 'Tătărași',
-    'Moara de Vant' => 'Moara de Vânt',
-    'Manta Rosie'   => 'Manta Roșie',
-    'Targu Cucu'    => 'Târgu Cucu',
-    'Ticau'         => 'Țicău',
-    'Sararie'       => 'Sărărie',
-    'Tudor'         => 'Tudor Vladimirescu',
-    'Alexandru'     => 'Alexandru cel Bun'
-];
-
-$locationCount = [];
-foreach ($rows as $row) {
-    $raw   = $row['location'];
-    $found = false;
-    foreach ($cartiere as $cartier) {
-        if (stripos($raw, $cartier) !== false) {
-            $nume = $normalizare[$cartier] ?? $cartier;
-            $locationCount[$nume] = ($locationCount[$nume] ?? 0) + 1;
-            $found = true;
-            break;
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+        $loc = $row['location'];
+        if (!isset($locationCount[$loc])) {
+            $locationCount[$loc] = 0;
         }
+        $locationCount[$loc]++;
     }
-    if (!$found) {
-        $parts   = explode(',', $raw);
-        $scurt   = trim($parts[0]);
-        if (strlen($scurt) > 25) { $scurt = substr($scurt, 0, 22) . '...'; }
-        $locationCount[$scurt] = ($locationCount[$scurt] ?? 0) + 1;
+
+    $dirtiest = "N/A";
+    $cleanest = "N/A";
+
+    if (!empty($locationCount)) {
+        arsort($locationCount);
+        $dirtiest = array_key_first($locationCount);
+        asort($locationCount);
+        $cleanest = array_key_last($locationCount);
     }
-}
-arsort($locationCount);
-$dirtiest = array_key_first($locationCount) ?? 'N/A';
-$cleanest = array_key_last($locationCount)  ?? 'N/A';
 
     if ($format === 'csv') {
-        header('Content-Type: text/csv');
+        if (ob_get_length()) { ob_clean(); }
+
+        header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="report.csv"');
+
         $output = fopen("php://output", "w");
-        fputcsv($output, ["ID", "Category", "Location", "Status", "Date"]);
-        fputcsv($output, []);
-        fputcsv($output, ["Dirtiest Area", $dirtiest, "Most reports: " . ($locationCount[$dirtiest] ?? 0)]);
-        fputcsv($output, ["Cleanest Area", $cleanest, "Least reports: " . ($locationCount[$cleanest] ?? 0)]);
-        fputcsv($output, []);
-        foreach ($rows as $row) { fputcsv($output, $row); }
+        fputs($output, "\xEF\xBB\xBF");
+
+
+        fputcsv($output, ["--- DATA EXPORT ---"], ",", "\"", "\\");
+        fputcsv($output, ["ID", "Category", "Location", "Status", "Date"], ",", "\"", "\\");
+
+        foreach ($rows as $row) {
+            fputcsv($output, [
+                $row['id'],
+                $row['category'],
+                $row['location'],
+                $row['status'],
+                $row['created_at']
+            ], ",", "\"", "\\");
+        }
+
         fclose($output);
         exit;
     }
 
-    if ($format === 'html') {
-        header('Content-Type: text/html; charset=utf-8');
-        header('Content-Disposition: attachment; filename="report.html"');
-        echo '<!DOCTYPE html><html><head><meta charset="UTF-8">
-        <title>CityWatch Report</title>
-        <style>
-            body { font-family: Arial, sans-serif; padding: 30px; color: #333; }
-            h1 { color: #2e7d32; }
-            .highlight { display: flex; gap: 20px; margin-bottom: 20px; }
-            .box { padding: 15px 20px; border-radius: 8px; flex: 1; }
-            .dirty { background: #fdecea; border-left: 5px solid #c0392b; }
-            .clean { background: #e8f5e9; border-left: 5px solid #2e7d32; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #2e7d32; color: white; padding: 10px; text-align: left; }
-            td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-            tr:nth-child(even) { background: #f9f9f9; }
-        </style></head><body>';
-        echo '<h1>CityWatch Report</h1>';
-        echo '<p>Generated: ' . date("d M Y, H:i") . '</p>';
-        echo '<div class="highlight">';
-        echo '<div class="box dirty"><strong>Dirtiest Area:</strong> ' . htmlspecialchars($dirtiest) . ' (' . ($locationCount[$dirtiest] ?? 0) . ' reports)</div>';
-        echo '<div class="box clean"><strong>Cleanest Area:</strong> ' . htmlspecialchars($cleanest) . ' (' . ($locationCount[$cleanest] ?? 0) . ' reports)</div>';
-        echo '</div>';
-        echo '<table><tr><th>ID</th><th>Category</th><th>Location</th><th>Status</th><th>Date</th></tr>';
-        foreach ($rows as $row) {
-            echo '<tr>';
-            echo '<td>' . $row['id'] . '</td>';
-            echo '<td>' . htmlspecialchars($row['category']) . '</td>';
-            echo '<td>' . htmlspecialchars($row['location']) . '</td>';
-            echo '<td>' . htmlspecialchars($row['status']) . '</td>';
-            echo '<td>' . $row['created_at'] . '</td>';
-            echo '</tr>';
-        }
-        echo '</table></body></html>';
-        exit;
+    require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
+    $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+    $pdf->SetCreator('CityWatch');
+    $pdf->SetTitle('CityWatch Report');
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->AddPage();
+    $pdf->SetFont('dejavusans', '', 10);
+
+    $html = '<h2>CityWatch Report</h2>
+    <p><b>Dirtiest Area:</b> ' . htmlspecialchars($dirtiest) . '</p>
+    <p><b>Cleanest Area:</b> ' . htmlspecialchars($cleanest) . '</p>
+    <br>
+    <table border="1" cellpadding="4">
+        <thead>
+            <tr bgcolor="#2e7d32" color="#ffffff">
+                <th width="10%">ID</th>
+                <th width="20%">Category</th>
+                <th width="40%">Location</th>
+                <th width="15%">Status</th>
+                <th width="15%">Date</th>
+            </tr>
+        </thead>
+        <tbody>';
+
+    foreach ($rows as $row) {
+        $html .= '<tr>
+            <td>' . $row['id'] . '</td>
+            <td>' . htmlspecialchars($row['category']) . '</td>
+            <td>' . htmlspecialchars($row['location']) . '</td>
+            <td>' . ucfirst($row['status']) . '</td>
+            <td>' . date("d M Y", strtotime($row['created_at'])) . '</td>
+        </tr>';
     }
-    if ($format === 'pdf') {
-        require_once __DIR__ . '/../vendor/autoload.php';
 
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator('CityWatch');
-        $pdf->SetTitle('CityWatch Report');
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->AddPage();
-        $pdf->SetFont('dejavusans', '', 10);
+    $html .= '</tbody></table>';
 
-        $html = '<h2>CityWatch Report</h2>
-        <p><b>Dirtiest Area:</b> ' . htmlspecialchars($dirtiest) . '</p>
-        <p><b>Cleanest Area:</b> ' . htmlspecialchars($cleanest) . '</p>
-        <br>
-        <table border="1" cellpadding="4">
-            <thead>
-                <tr bgcolor="#2e7d32" color="#ffffff">
-                    <th width="10%">ID</th>
-                    <th width="20%">Category</th>
-                    <th width="40%">Location</th>
-                    <th width="15%">Status</th>
-                    <th width="15%">Date</th>
-                </tr>
-            </thead>
-            <tbody>';
-
-        foreach ($rows as $row) {
-            $html .= '<tr>
-                <td>' . $row['id'] . '</td>
-                <td>' . htmlspecialchars($row['category']) . '</td>
-                <td>' . htmlspecialchars($row['location']) . '</td>
-                <td>' . ucfirst($row['status']) . '</td>
-                <td>' . date("d M Y", strtotime($row['created_at'])) . '</td>
-            </tr>';
-        }
-
-        $html .= '</tbody></table>';
-
-        $pdf->writeHTML($html, true, false, true, false, '');
-        $pdf->Output('citywatch_report.pdf', 'I');
-        exit;
-    }
+    $pdf->writeHTML($html, true, false, true, false, '');
+    if (ob_get_length()) { ob_end_clean(); }
+    $pdf->Output('report.pdf', 'D');
+    exit;
 }
 ?>

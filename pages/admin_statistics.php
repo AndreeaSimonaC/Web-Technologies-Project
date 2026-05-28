@@ -291,6 +291,7 @@ foreach ($categoryLines as $line) {
             <div class="form-group">
                 <label>Time Period</label>
                 <select name="period">
+                    <option value="all">All time</option>
                     <option value="week">This week</option>
                     <option value="month">This month</option>
                     <option value="custom">Custom range</option>
