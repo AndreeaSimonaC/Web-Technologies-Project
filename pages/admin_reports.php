@@ -485,7 +485,7 @@ require_once '../models/ReportModel.php';
             const description = document.getElementById("editDescription").value;
             const status = document.getElementById("editStatus").value;
 
-            fetch("report_action.php", {
+            fetch("../api/report_action.php", {
                     method: "POST",
                     headers: {"Content-Type": "application/x-www-form-urlencoded" },
                     body: `id=${selectedId}&action=edit&category=${category}&location=${reportLocation}&description=${description}&status=${status}`
@@ -516,7 +516,7 @@ require_once '../models/ReportModel.php';
         });
 
         document.getElementById("confirmDelete").onclick = () => {
-            fetch("report_action.php", {
+            fetch("../api/report_action.php", {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: `id=${selectedId}&action=${currentAction}`
